@@ -109,9 +109,24 @@ and parse_action t macro =
            | Block [{exp=Macro (test,[]);loc=_}] ] ) ->
       AT_XFAIL_IF test
 
-  | Macro ("AT_SKIP_IF", [ Quoted test
-                         | Block [{exp=Macro (test,[]);loc=_}] ] ) ->
-      AT_SKIP_IF test
+  | Macro ("AT_SKIP_IF", [ Quoted "true"
+                         | Block [{exp=Macro ("true",[]);loc=_}] ] ) ->
+      AT_SKIP
+
+  | Macro ("AT_SKIP_IF", [ Quoted command
+                         | Block [{exp=Macro (command,[]);loc=_}] ] ) ->
+      AT_CHECK {
+        step = next_step t ;
+        is_check = false ;
+        command ;
+        check_loc = name_of_loc macro.loc ;
+        retcode = Some 1 ;
+        stdout = Ignore ;
+        stderr = Ignore ;
+        test = t;
+        run_if_pass = [] ;
+        run_if_fail = [ AT_SKIP ] ;
+      }
 
   | Macro ("AT_CHECK", args ) ->
       let check_loc = name_of_loc macro.loc in

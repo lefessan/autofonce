@@ -71,7 +71,7 @@ let test_is_skip t =
   let c = t.suite in
   c.tests_skipped <- t :: c.tests_skipped ;
   if not !keep_skipped then Misc.remove_rec ( test_dir t ) ;
-  buffer_test c t "SKIP"
+  buffer_test c t "SKIP (%s)" t.test_loc
 
 let exec_action_no_check t action =
   match action with
@@ -161,6 +161,19 @@ let check_failures check retcode =
   in
   let check_stdout = Printf.sprintf "%s.out" check_prefix in
   let check_stderr = Printf.sprintf "%s.err" check_prefix in
+  let compare to_check file kind =
+    match to_check with
+    | Ignore -> []
+    | Content expected ->
+        let stdout_file = test_dir // file in
+        if EzFile.read_file stdout_file <> expected then begin
+          let stdout_expected = stdout_file ^ ".expected" in
+          EzFile.write_file stdout_expected expected ;
+          Misc.command_ "diff -u %s %s > %s.diff"
+            stdout_file stdout_expected stdout_file;
+          [ kind ]
+        end else []
+  in
   begin match check.retcode with
     | None -> []
     | Some expected ->
@@ -168,25 +181,6 @@ let check_failures check retcode =
           "exitcode" ] else []
   end
   @
-  begin match check.stdout with
-    | Ignore -> []
-    | Content expected ->
-        if EzFile.read_file ( test_dir // check_stdout )
-           <> expected then begin
-          EzFile.write_file ( test_dir // check_stdout ^ ".expected")
-            expected ;
-          [ "stdout" ]
-        end else []
-  end
+  compare check.stdout check_stdout "stdout"
   @
-  begin match check.stderr with
-    | Ignore -> []
-    | Content expected ->
-        if EzFile.read_file ( test_dir // check_stderr ) <> expected then
-          begin
-            EzFile.write_file ( test_dir // check_stderr ^ ".expected")
-              expected ;
-            [ "stderr" ]
-          end
-        else []
-  end
+  compare check.stderr check_stderr "stderr"

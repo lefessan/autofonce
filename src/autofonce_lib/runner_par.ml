@@ -68,9 +68,7 @@ let rec schedule_job r =
 and schedule_action r action =
   if !Globals.verbose > 1 then Printf.eprintf "schedule_action\n%!";
   match action with
-  | AT_SKIP_IF "true" -> Runner_common.test_is_skip r.running_test
-  | AT_SKIP_IF _ -> Runner_common.test_is_skip r.running_test
-  (* TODO : run a shell to understand if useful *)
+  | AT_SKIP -> Runner_common.test_is_skip r.running_test
   | AT_CHECK check ->
       let pid = Runner_common.start_check check in
       if !Globals.verbose > 1 then Printf.eprintf "JOB %d STARTED\n%!" pid;

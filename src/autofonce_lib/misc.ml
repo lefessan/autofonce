@@ -30,13 +30,20 @@ let macro_error macro fmt =
         (M4Printer.string_of_macro macro)
     ) fmt
 
-let remove_rec dir =
-  let retcode = Printf.kprintf Sys.command "rm -rf %s" dir in
-  assert ( retcode = 0 )
+let command fmt =
+  Printf.kprintf (fun cmd ->
+      let retcode = Sys.command cmd in
+      assert ( retcode = 0 )
+    ) fmt
 
-let remove_all dir =
-  let retcode = Printf.kprintf Sys.command "rm -rf %s/*" dir in
-  assert ( retcode = 0 )
+let command_ fmt =
+  Printf.kprintf (fun cmd ->
+      ignore ( Sys.command cmd )
+    ) fmt
+
+let remove_rec dir = command "rm -rf %s" dir
+
+let remove_all dir = command "rm -rf %s/*" dir
 
 let find_file file =
   let rec iter dirname =

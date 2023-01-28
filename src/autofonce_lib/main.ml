@@ -35,6 +35,7 @@ let commands = [
   Command_init.cmd ;
   Command_list.cmd ;
   Command_run.cmd ;
+  Command_new.cmd ;
 ]
 
 let main () =

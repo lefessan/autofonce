@@ -30,7 +30,7 @@ and action =
   | AT_DATA of { file:string ; content: string }
   | AT_CAPTURE_FILE of string
   | AT_XFAIL_IF of string
-  | AT_SKIP_IF of string
+  | AT_SKIP
   | AT_CHECK of check
 
 and test = {
@@ -80,8 +80,8 @@ let rec string_of_action = function
       Printf.sprintf "AT_CAPTURE_FILE %s" string
   | AT_XFAIL_IF string ->
       Printf.sprintf "AT_XFAIL_IF %s" string
-  | AT_SKIP_IF string ->
-      Printf.sprintf "AT_SKIP_IF %s" string
+  | AT_SKIP ->
+      "AT_SKIP"
   | AT_CHECK  check ->
       Printf.sprintf "AT_CHECK %s" ( string_of_check check )
 

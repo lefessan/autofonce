@@ -19,9 +19,7 @@ let failed job s = raise (FAILED (job, s))
 
 let rec exec_action_or_check t action =
   match action with
-  | AT_SKIP_IF "true" -> raise SKIP
-  | AT_SKIP_IF _ ->
-      raise SKIP (* TODO : run a shell to understand if useful *)
+  | AT_SKIP -> raise SKIP
   | AT_CHECK job ->
       let pid = Runner_common.start_check job in
       let ret_pid, status = Call.wait_pids () in
