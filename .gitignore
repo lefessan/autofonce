@@ -8,5 +8,7 @@ _build
 /_build
 .drom.config
 # Add dot-gitignore-trailer = "..." in [fields] of drom.toml
+/autofonce-*.bin
+/gh-pages
 
 

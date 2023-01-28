@@ -35,7 +35,10 @@ way:
 """
 
 [project]
-skip = []
+skip = [
+     "README.md",
+     "sphinx/install.rst",
+     "sphinx/index.rst", "sphinx/about.rst" ]
 
 # project-wide library dependencies (not for package-specific deps)
 [dependencies]
@@ -70,7 +73,10 @@ share-dirs = ["share"]
 
 # project-wide fields (depends on project skeleton)
 [fields]
-# ...
+dot-gitignore-trailer = """
+/autofonce-*.bin
+/gh-pages
+"""
 
 [[package]]
 dir = "src/autofonce"

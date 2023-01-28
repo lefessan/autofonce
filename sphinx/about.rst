@@ -5,9 +5,12 @@ autoconf is a modern runner for GNU Autoconf Testsuites:
 autoconf has a limited understanding of m4 macros that appear in testsuites
 written for the GNU Autoconf testsuites, and can run such tests in a modern
 way:
-* automatic run from any directory
-* short display focusing on failed tests
-* automatic parallelism
+
+  * automatic run from any directory
+
+  * short display focusing on failed tests
+
+  * automatic parallelism
 
 
 Authors

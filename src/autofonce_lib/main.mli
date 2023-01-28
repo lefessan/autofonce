@@ -8,9 +8,5 @@
 (*                                                                        *)
 (**************************************************************************)
 
-val set_verbosity : int -> unit
-val get_verbosity : unit -> int
-
-val run_cmd : Ezcmd.V2.EZCMD.TYPES.sub
-val list_cmd : Ezcmd.V2.EZCMD.TYPES.sub
-val init_cmd : Ezcmd.V2.EZCMD.TYPES.sub
+val main : unit -> unit
+val commands : Ezcmd.V2.EZCMD.TYPES.sub list

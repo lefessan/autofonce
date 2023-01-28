@@ -42,7 +42,7 @@ let test_dir t =
   tests_dir // Printf.sprintf "%04d" t.id
 
 let test_is_ok t =
-  Misc.remove_rec ( test_dir t ) ;
+  if not !keep_all then Misc.remove_rec ( test_dir t ) ;
   let c = t.suite in
   c.ntests_ok <- c.ntests_ok + 1
 
