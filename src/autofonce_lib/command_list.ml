@@ -8,27 +8,26 @@
 (*                                                                        *)
 (**************************************************************************)
 
-let verbose = ref 1
+open Ezcmd.V2
 
-let stop_on_first_failure = ref false
-let clean_tests_dir = ref true
-let print_all = ref false
-let max_jobs = ref 16
-let testsuite = ref "tests/testsuite.at"
-let keep_skipped = ref false
-let keep_all = ref false
-
-(* selection of tests *)
-let exec_after = ref 0
-let exec_before = ref max_int
-let tests_ids = ref ( [] : int list )
-let tests_keywords = ref ( [] : string list )
-
-(* file looked-up for project specific testsuite environment *)
-let autotest_env = "autofonce.env"
-
-(* toplevel dir created to run tests *)
-let tests_dir = "_autotest"
-
-(* name of env script created in every test dir *)
-let env_autotest_sh = "env_autofonce.sh"
+let cmd =
+  let args =
+    Testsuite.args @
+    Filter.args @
+    [
+    ]
+  in
+  EZCMD.sub
+    "list"
+    (fun () ->
+       let c = Testsuite.find () in
+       Testsuite.print c
+    )
+    ~args
+    ~doc: "Print testsuite of the current project"
+    ~man:[
+      `S "DESCRIPTION";
+      `Blocks [
+        `P {|List the tests, with their numeric identifier, their name and their location in the testsuite files.|}
+      ];
+    ]
