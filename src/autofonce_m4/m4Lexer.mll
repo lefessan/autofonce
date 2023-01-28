@@ -102,7 +102,7 @@ and quoted = parse
   | '\n' { Lexing.new_line lexbuf;
            Buffer.add_char quoted_buffer '\n';
            quoted lexbuf }
-  | "@:<@" { Buffer.add_char quoted_buffer '['; quoted lexbuf }
+  | "@<:@" { Buffer.add_char quoted_buffer '['; quoted lexbuf }
   | "@:>@" { Buffer.add_char quoted_buffer ']'; quoted lexbuf }
   | _ { Buffer.add_string quoted_buffer ( Lexing.lexeme lexbuf );
                           quoted lexbuf; }
