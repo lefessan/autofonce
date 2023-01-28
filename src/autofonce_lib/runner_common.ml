@@ -86,9 +86,7 @@ let exec_action_no_check t action =
       Printf.kprintf failwith "exec_action: %s not implemented"
         ( string_of_action action )
 
-
-let start_test t =
-  let c = t.suite in
+let print_status c =
   Terminal.move_bol ();
   Terminal.erase Eol;
   Printf.printf " %d / %d%!" c.ntests_ran c.ntests;
@@ -97,7 +95,13 @@ let start_test t =
       "  %d failed:%!" (List.length c.tests_failed);
     print_ntests 10 c.tests_failed;
   end;
+  Printf.printf " %s%!" c.status;
+  ()
+
+let start_test t =
+  let c = t.suite in
   c.ntests_ran <- c.ntests_ran + 1;
+  print_status c;
   let test_dir = tests_dir // Printf.sprintf "%04d" t.id in
   if Sys.file_exists test_dir then
     Misc.remove_all test_dir

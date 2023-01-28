@@ -13,6 +13,7 @@ open Types
 open Globals (* toplevel references *)
 
 type scheduler = {
+  suite : testsuite ;
   test_fifo : test Queue.t ;
   mutable running_tests : running_test IntMap.t ;
   mutable current_jobs : int ;
@@ -25,9 +26,36 @@ and running_test = {
   mutable current_check : check option ;
 }
 
+let b = Buffer.create 100
+let update_status s =
+  Buffer.clear b;
+  let n = IntMap.cardinal s.running_tests in
+  if n > 0 then begin
+    Printf.bprintf b " [";
+    match IntMap.min_elt s.running_tests with
+    | None -> assert false
+    | Some (_, r) ->
+        let t = r.running_test in
+        Printf.bprintf b " %d %-38s"
+          t.id
+          (let len = String.length t.name in
+           if len > 38 then
+             (String.sub t.name 0 36 ^ "..")
+           else
+             t.name
+          );
+        if n > 1 then
+          Printf.bprintf b " +%d ]" (n-1)
+        else
+          Buffer.add_string b " ]"
+  end;
+  s.suite.status <- Buffer.contents b
+
 let rec schedule_job r =
   match r.waiting_actions with
-  | [] -> Runner_common.test_is_ok r.running_test
+  | [] ->
+      Runner_common.test_is_ok r.running_test ;
+      Runner_common.print_status r.running_test.suite
   | actions :: action_queue ->
       match actions with
       | [] ->
@@ -50,7 +78,8 @@ and schedule_action r action =
 
       let s = r.scheduler in
       s.current_jobs <- s.current_jobs + 1;
-      s.running_tests <- IntMap.add pid r s.running_tests
+      s.running_tests <- IntMap.add pid r s.running_tests;
+      update_status s
 
   | _ ->
       Runner_common.exec_action_no_check r.running_test action;
@@ -112,6 +141,7 @@ let run s =
       let job = IntMap.find pid s.running_tests in
       s.running_tests <- IntMap.remove pid s.running_tests;
       s.current_jobs <- s.current_jobs - 1;
+      update_status s;
       job_terminated job ret_code;
       iter ()
   in
@@ -119,6 +149,7 @@ let run s =
 
 let exec_testsuite c =
   let s = {
+    suite = c;
     test_fifo = Queue.create () ;
     running_tests = IntMap.empty;
     current_jobs = 0;

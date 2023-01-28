@@ -63,6 +63,7 @@ and testsuite = {
   (* imperative context, these values are meaningless at the end of
      functions *)
   mutable current_banner : string ;
+  mutable status : string ;
   mutable ntests_ran : int ;
   mutable ntests_ok : int ;
   mutable tests_failed : test list ;

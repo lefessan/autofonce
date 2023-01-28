@@ -55,6 +55,7 @@ let read filename =
     tests = [] ;
     tested_programs = [] ;
     copyright = "" ;
+    status = "";
 
     testsuite_dir ;
     autotest_dir ;
