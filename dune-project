@@ -5,15 +5,15 @@
 (name autofonce)
 (allow_approximate_merlin)
 (generate_opam_files false)
-(version 0.3)
+(version 0.4)
 (formatting (enabled_for ocaml reason))
 
 (package
  (name autofonce)
  (synopsis "autofonce: modern runner for GNU Autoconf Testsuites")
- (description "autoconf is a modern runner for GNU Autoconf Testsuites:\nautoconf has a limited understanding of m4 macros that appear in testsuites\nwritten for the GNU Autoconf testsuites, and can run such tests in a modern\nway:\n* automatic run from any directory\n* short display focusing on failed tests\n* automatic parallelism\n")
+ (description "autofonce is a modern runner for GNU Autoconf Testsuites:\nautofonce has a limited understanding of m4 macros that appear in testsuites\nwritten for the GNU Autoconf testsuites, and can run such tests in a modern\nway:\n* automatic run from any directory\n* short display focusing on failed tests\n* automatic parallelism\n")
  (depends
-   (ocaml (>= 4.07.0))
+   (ocaml (>= 4.10.0))
    (autofonce_lib (= version))
    ppx_inline_test
    ppx_expect
@@ -23,11 +23,11 @@
  )
 
 (package
- (name autofonce_lib)
+ (name autofonce_core)
  (synopsis "autofonce: modern runner for GNU Autoconf Testsuites")
- (description "autoconf is a modern runner for GNU Autoconf Testsuites:\nautoconf has a limited understanding of m4 macros that appear in testsuites\nwritten for the GNU Autoconf testsuites, and can run such tests in a modern\nway:\n* automatic run from any directory\n* short display focusing on failed tests\n* automatic parallelism\n")
+ (description "autofonce is a modern runner for GNU Autoconf Testsuites:\nautofonce has a limited understanding of m4 macros that appear in testsuites\nwritten for the GNU Autoconf testsuites, and can run such tests in a modern\nway:\n* automatic run from any directory\n* short display focusing on failed tests\n* automatic parallelism\n")
  (depends
-   (ocaml (>= 4.07.0))
+   (ocaml (>= 4.10.0))
    (ocplib_stuff ( >= 0.1 ))
    (ez_file ( >= 0.3 ))
    (ez_cmdliner ( >= 0.2 ))
@@ -42,11 +42,31 @@
  )
 
 (package
+ (name autofonce_lib)
+ (synopsis "autofonce: modern runner for GNU Autoconf Testsuites")
+ (description "autofonce is a modern runner for GNU Autoconf Testsuites:\nautofonce has a limited understanding of m4 macros that appear in testsuites\nwritten for the GNU Autoconf testsuites, and can run such tests in a modern\nway:\n* automatic run from any directory\n* short display focusing on failed tests\n* automatic parallelism\n")
+ (depends
+   (ocaml (>= 4.10.0))
+   (ocplib_stuff ( >= 0.1 ))
+   (ez_file ( >= 0.3 ))
+   (ez_cmdliner ( >= 0.4 ))
+   (autofonce_share (= version))
+   (autofonce_m4 (= version))
+   (autofonce_core (= version))
+   (ANSITerminal ( >= 0.8 ))
+   ppx_inline_test
+   ppx_expect
+   odoc
+   ocamlformat
+  )
+ )
+
+(package
  (name autofonce_m4)
  (synopsis "autofonce: modern runner for GNU Autoconf Testsuites")
- (description "autoconf is a modern runner for GNU Autoconf Testsuites:\nautoconf has a limited understanding of m4 macros that appear in testsuites\nwritten for the GNU Autoconf testsuites, and can run such tests in a modern\nway:\n* automatic run from any directory\n* short display focusing on failed tests\n* automatic parallelism\n")
+ (description "autofonce is a modern runner for GNU Autoconf Testsuites:\nautofonce has a limited understanding of m4 macros that appear in testsuites\nwritten for the GNU Autoconf testsuites, and can run such tests in a modern\nway:\n* automatic run from any directory\n* short display focusing on failed tests\n* automatic parallelism\n")
  (depends
-   (ocaml (>= 4.07.0))
+   (ocaml (>= 4.10.0))
    (ocplib_stuff ( >= 0.1 ))
    (ez_file ( >= 0.3 ))
    ppx_inline_test
@@ -59,9 +79,9 @@
 (package
  (name autofonce_share)
  (synopsis "autofonce: modern runner for GNU Autoconf Testsuites")
- (description "autoconf is a modern runner for GNU Autoconf Testsuites:\nautoconf has a limited understanding of m4 macros that appear in testsuites\nwritten for the GNU Autoconf testsuites, and can run such tests in a modern\nway:\n* automatic run from any directory\n* short display focusing on failed tests\n* automatic parallelism\n")
+ (description "autofonce is a modern runner for GNU Autoconf Testsuites:\nautofonce has a limited understanding of m4 macros that appear in testsuites\nwritten for the GNU Autoconf testsuites, and can run such tests in a modern\nway:\n* automatic run from any directory\n* short display focusing on failed tests\n* automatic parallelism\n")
  (depends
-   (ocaml (>= 4.07.0))
+   (ocaml (>= 4.10.0))
    (crunch ( >= 3.2.0 ))
    ppx_inline_test
    ppx_expect

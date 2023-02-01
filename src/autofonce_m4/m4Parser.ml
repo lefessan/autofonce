@@ -14,79 +14,64 @@ open M4Types
 let error loc fmt =
   Printf.kprintf (fun s -> raise ( Error (s, loc))) fmt
 
-let parse_file filename =
-  let content = EzFile.read_file filename in
+let unescape ?last s =
+  M4Lexer.unescape ?last ( Lexing.from_string s )
+
+let to_string arg = unescape ~last:true arg.arg
+
+let new_arg arg_loc arg = { arg ; arg_loc }
+
+let parse_string ?loc content =
   let lexbuf = Lexing.from_string content in
-  Lexing.set_filename lexbuf filename;
-  M4Lexer.init ();
+  M4Lexer.init ?loc lexbuf;
 
   let rec iter macros =
     expect_ident macros ( M4Lexer.token lexbuf )
 
   and expect_ident macros ( new_loc, token ) =
     match token with
-    | EOF | COMMA | RPAREN -> ( new_loc, token ), List.rev macros
+    | EOF -> ( new_loc, token ), List.rev macros
     | IDENT ident ->
-        expect_lparen macros (new_loc,ident) ( M4Lexer.token lexbuf )
+        expect_first_arg macros (new_loc,ident) ( M4Lexer.token lexbuf )
     | SHELL shell ->
-        expect_ident ( { exp = Shell shell ; loc = new_loc } :: macros )
+        expect_ident ( { kind = Shell shell ; loc = new_loc } :: macros )
           ( M4Lexer.token lexbuf )
     | _ -> error new_loc "Unexpected token %S in expect_ident"
              (M4Printer.string_of_token token)
 
-  and expect_lparen macros (loc,ident) ( new_loc, token ) =
+  and expect_first_arg macros (loc,ident) ( new_loc, token ) =
     match token with
-    | EOF | RPAREN | COMMA ->
+    | EOF ->
         ( new_loc, token ),
-        List.rev ( { exp = Macro (ident,[]) ; loc } :: macros )
+        List.rev ( { kind = Macro (ident,[]) ; loc } :: macros )
     | IDENT new_ident ->
-        expect_lparen ( { exp = Macro (ident,[]) ; loc } :: macros )
+        expect_first_arg ( { kind = Macro (ident,[]) ; loc } :: macros )
           (new_loc,new_ident) ( M4Lexer.token lexbuf )
     | SHELL shell ->
-        expect_ident ( { exp = Shell shell ; loc = new_loc } ::
-                       { exp = Macro (ident,[]) ; loc } :: macros )
+        expect_ident ( { kind = Shell shell ; loc = new_loc } ::
+                       { kind = Macro (ident,[]) ; loc } :: macros )
           ( M4Lexer.token lexbuf )
-    | LPAREN ->
-        expect_arg_or_rparen macros (loc,ident) ( M4Lexer.token lexbuf )
-    | _ -> error new_loc "Unexpected token %S in expect_lparen"
+    | FIRST_ARG arg ->
+        let arg = new_arg new_loc arg in
+        expect_next_arg macros (loc,ident) [arg] ( M4Lexer.token lexbuf )
+    | ONE_ARG arg ->
+        let arg = new_arg new_loc arg in
+        expect_ident ( { kind = Macro (ident, [arg]) ; loc } :: macros )
+          ( M4Lexer.token lexbuf )
+    | _ -> error new_loc "Unexpected token %S in expect_first_arg"
              (M4Printer.string_of_token token)
 
-  and expect_arg_or_rparen macros (loc,ident) ( new_loc, token ) =
+  and expect_next_arg macros (loc,ident) args ( new_loc, token ) =
     match token with
-    | RPAREN ->
+    | LAST_ARG arg ->
+        let arg = new_arg new_loc arg in
         expect_ident (
-          { exp = Macro (ident,[]) ; loc } ::macros ) ( M4Lexer.token lexbuf )
-    | QUOTED arg ->
-        expect_comma_or_rparen macros (loc,ident) [Quoted arg]
+          { kind = Macro (ident,List.rev (arg::args)) ; loc } ::macros )
           ( M4Lexer.token lexbuf )
-    | IDENT _ ->
-        let ( new_loc, token ), arg = expect_ident [] ( new_loc, token ) in
-        expect_comma_or_rparen macros (loc,ident) [Block arg]
-          ( new_loc, token )
-    | _ -> error new_loc "Unexpected token %S in expect_arg_or_rparen"
-             (M4Printer.string_of_token token)
-
-  and expect_comma_or_rparen macros (loc,ident) args ( new_loc, token ) =
-    match token with
-    | RPAREN ->
-        expect_ident (
-          { exp = Macro (ident,List.rev args) ; loc } ::macros )
-          ( M4Lexer.token lexbuf )
-    | COMMA ->
-        expect_arg macros (loc,ident) args ( M4Lexer.token lexbuf )
-    | _ -> error new_loc "Unexpected token %S in expect_comma_or_rparen"
-             (M4Printer.string_of_token token)
-
-  and expect_arg macros ident args ( new_loc, token ) =
-    match token with
-    | QUOTED arg ->
-        expect_comma_or_rparen macros ident ( ( Quoted arg ) :: args)
-          ( M4Lexer.token lexbuf )
-    | IDENT _ ->
-        let ( new_loc, token ), arg = expect_ident [] ( new_loc, token ) in
-        expect_comma_or_rparen macros ident ( ( Block arg ) :: args)
-          ( new_loc, token )
-    | _ -> error new_loc "Unexpected token %S in expect_arg"
+    | NEXT_ARG arg ->
+        let arg = new_arg new_loc arg in
+        expect_next_arg macros (loc,ident) (arg::args) ( M4Lexer.token lexbuf )
+    | _ -> error new_loc "Unexpected token %S in expect_next_arg"
              (M4Printer.string_of_token token)
   in
   match iter [] with
@@ -97,3 +82,12 @@ let parse_file filename =
   | ( loc, token ), _ ->
       error loc "Unexpected token %S"
         (M4Printer.string_of_token token)
+
+let parse_file filename =
+  let content = EzFile.read_file filename in
+  let loc = {
+    file = filename ;
+    line = 1;
+    char = 0;
+  } in
+  parse_string ~loc content

@@ -5,12 +5,12 @@ version:0.8.0
 
 # hash of toml configuration files
 # used for generation of all files
-358dd6819d605b0821f4d209bd477e56:.
+399655043aab19377a0bd7db8886e0d6:.
 # end context for .
 
 # begin context for .github/workflows/workflow.yml
 # file .github/workflows/workflow.yml
-25430ec30a4b76573b591944c5eacf8d:.github/workflows/workflow.yml
+48fd007fff65bdb4ca0da2716a7ac2eb:.github/workflows/workflow.yml
 # end context for .github/workflows/workflow.yml
 
 # begin context for .gitignore
@@ -35,7 +35,7 @@ c8f70450e7d78c0387644864ffe8cbd5:.ocamlformat-ignore
 
 # begin context for CHANGES.md
 # file CHANGES.md
-e1fefb6ded743fa6bba3c9a5339b300a:CHANGES.md
+fa18d5646a9d2d0c39de11039de1b596:CHANGES.md
 # end context for CHANGES.md
 
 # begin context for LICENSE.md
@@ -45,7 +45,7 @@ ebb31f7006b7740fd3a675e77fb65884:LICENSE.md
 
 # begin context for Makefile
 # file Makefile
-416dee94d7133b06de6a891f42701303:Makefile
+f370cab7d14142db4801079183907095:Makefile
 # end context for Makefile
 
 # begin context for README.md
@@ -70,7 +70,7 @@ e739f3026aa997af4026bc428f4c9ef6:docs/favicon.png
 
 # begin context for docs/index.html
 # file docs/index.html
-c5d03bc0c3d73cec98511631153c2e1f:docs/index.html
+aca07179d3a99ec713383d1a1d2e526b:docs/index.html
 # end context for docs/index.html
 
 # begin context for docs/sphinx/index.html
@@ -95,27 +95,32 @@ bd16ecac5988a3d967bd11a4f121ccee:drom.toml
 
 # begin context for dune-project
 # file dune-project
-b41ef9b564fd5302b828d8bcd958e6f6:dune-project
+f8fb7a0c72f2fda05353cb74d2266f91:dune-project
 # end context for dune-project
 
 # begin context for opam/autofonce.opam
 # file opam/autofonce.opam
-8cf4e2116ffcb582d36b395fcd7f9a0d:opam/autofonce.opam
+78fba9eebf23a465774738f3cf8ac30a:opam/autofonce.opam
 # end context for opam/autofonce.opam
+
+# begin context for opam/autofonce_core.opam
+# file opam/autofonce_core.opam
+0c568ab8810869b9ec25cbb25249f460:opam/autofonce_core.opam
+# end context for opam/autofonce_core.opam
 
 # begin context for opam/autofonce_lib.opam
 # file opam/autofonce_lib.opam
-8a9be0e80d0be5fc6323ed14e92ff7df:opam/autofonce_lib.opam
+dd5b0371ed95d9186a9e22fe9695f2af:opam/autofonce_lib.opam
 # end context for opam/autofonce_lib.opam
 
 # begin context for opam/autofonce_m4.opam
 # file opam/autofonce_m4.opam
-3d1ce20d137bc13ad193a75b87593bd5:opam/autofonce_m4.opam
+d8d9d415aa8424be588f3ea753b5c93b:opam/autofonce_m4.opam
 # end context for opam/autofonce_m4.opam
 
 # begin context for opam/autofonce_share.opam
 # file opam/autofonce_share.opam
-02b0454e400e875d7a497b46bb1ea725:opam/autofonce_share.opam
+c91a8b3eb06cfea7ed511b05d245c1b0:opam/autofonce_share.opam
 # end context for opam/autofonce_share.opam
 
 # begin context for scripts/after.sh
@@ -170,7 +175,7 @@ daddec1a14f047e1576b83034a78197c:sphinx/license.rst
 
 # begin context for src/autofonce/index.mld
 # file src/autofonce/index.mld
-cf92fb0515b27daabf1b8fae539f7925:src/autofonce/index.mld
+9cb1c8329f084103a0d36a7a0634cda0:src/autofonce/index.mld
 # end context for src/autofonce/index.mld
 
 # begin context for src/autofonce/main.ml
@@ -185,17 +190,32 @@ fa3e8ea03ade94dd107e15f043f1a80f:src/autofonce/main.ml
 
 # begin context for src/autofonce/version.mlt
 # file src/autofonce/version.mlt
-230ce3abc2f2729b9e18f02365fb6348:src/autofonce/version.mlt
+2381e8431e448bd5ac9dce91be69e7e0:src/autofonce/version.mlt
 # end context for src/autofonce/version.mlt
+
+# begin context for src/autofonce_core/dune
+# file src/autofonce_core/dune
+ed28b8c517728a1c2d6a19b3323232f4:src/autofonce_core/dune
+# end context for src/autofonce_core/dune
+
+# begin context for src/autofonce_core/index.mld
+# file src/autofonce_core/index.mld
+14e95af3de02bba02086a7682688245a:src/autofonce_core/index.mld
+# end context for src/autofonce_core/index.mld
+
+# begin context for src/autofonce_core/version.mlt
+# file src/autofonce_core/version.mlt
+2381e8431e448bd5ac9dce91be69e7e0:src/autofonce_core/version.mlt
+# end context for src/autofonce_core/version.mlt
 
 # begin context for src/autofonce_lib/dune
 # file src/autofonce_lib/dune
-879b78912ecd5c54b543aa6aa262a48c:src/autofonce_lib/dune
+beb4393752e0ebb1c901215ac387d1ad:src/autofonce_lib/dune
 # end context for src/autofonce_lib/dune
 
 # begin context for src/autofonce_lib/index.mld
 # file src/autofonce_lib/index.mld
-eb1ccd82d0b1e4e862dbdb580ecfdd8b:src/autofonce_lib/index.mld
+00ae9b5f4d38842a97b879152faf9afe:src/autofonce_lib/index.mld
 # end context for src/autofonce_lib/index.mld
 
 # begin context for src/autofonce_lib/main.ml
@@ -210,7 +230,7 @@ bc5576ba8d7ee400ba9b86e5a2b957b4:src/autofonce_lib/package.toml
 
 # begin context for src/autofonce_lib/version.mlt
 # file src/autofonce_lib/version.mlt
-230ce3abc2f2729b9e18f02365fb6348:src/autofonce_lib/version.mlt
+2381e8431e448bd5ac9dce91be69e7e0:src/autofonce_lib/version.mlt
 # end context for src/autofonce_lib/version.mlt
 
 # begin context for src/autofonce_m4/dune
@@ -220,17 +240,12 @@ bc5576ba8d7ee400ba9b86e5a2b957b4:src/autofonce_lib/package.toml
 
 # begin context for src/autofonce_m4/index.mld
 # file src/autofonce_m4/index.mld
-77b048219042c42b33d9729e66444196:src/autofonce_m4/index.mld
+ad9ca3e891bb085f1222de0ec40e091b:src/autofonce_m4/index.mld
 # end context for src/autofonce_m4/index.mld
-
-# begin context for src/autofonce_m4/main.ml
-# file src/autofonce_m4/main.ml
-038251f10175590f54090863b20eb82d:src/autofonce_m4/main.ml
-# end context for src/autofonce_m4/main.ml
 
 # begin context for src/autofonce_m4/version.mlt
 # file src/autofonce_m4/version.mlt
-230ce3abc2f2729b9e18f02365fb6348:src/autofonce_m4/version.mlt
+2381e8431e448bd5ac9dce91be69e7e0:src/autofonce_m4/version.mlt
 # end context for src/autofonce_m4/version.mlt
 
 # begin context for src/autofonce_share/dune
@@ -240,7 +255,7 @@ b18f683411ed798dcf994356027a475d:src/autofonce_share/dune
 
 # begin context for src/autofonce_share/index.mld
 # file src/autofonce_share/index.mld
-c7312ac231b27455294feb2ef6b1621f:src/autofonce_share/index.mld
+1f4856d4430e71f3c1a95208cbd03d9d:src/autofonce_share/index.mld
 # end context for src/autofonce_share/index.mld
 
 # begin context for src/autofonce_share/main.ml
@@ -250,12 +265,12 @@ c7312ac231b27455294feb2ef6b1621f:src/autofonce_share/index.mld
 
 # begin context for src/autofonce_share/version.mlt
 # file src/autofonce_share/version.mlt
-230ce3abc2f2729b9e18f02365fb6348:src/autofonce_share/version.mlt
+2381e8431e448bd5ac9dce91be69e7e0:src/autofonce_share/version.mlt
 # end context for src/autofonce_share/version.mlt
 
 # begin context for test/expect-tests/dune
 # file test/expect-tests/dune
-b08fd3e2390fa3999599ee76dfe8a443:test/expect-tests/dune
+9fd3885f90395a12e4a651a3ed309c1c:test/expect-tests/dune
 # end context for test/expect-tests/dune
 
 # begin context for test/expect-tests/test.ml
@@ -265,7 +280,7 @@ b08fd3e2390fa3999599ee76dfe8a443:test/expect-tests/dune
 
 # begin context for test/inline-tests/dune
 # file test/inline-tests/dune
-85ef8c7701bda0e5163e246d2b1aa1da:test/inline-tests/dune
+5e86ef20686251cee6ccff1a1876c2b7:test/inline-tests/dune
 # end context for test/inline-tests/dune
 
 # begin context for test/inline-tests/test.ml
@@ -275,7 +290,7 @@ b08fd3e2390fa3999599ee76dfe8a443:test/expect-tests/dune
 
 # begin context for test/output-tests/dune
 # file test/output-tests/dune
-7260a6f1ebfeea3c097137088c900d72:test/output-tests/dune
+30de568a18aa0b305d9082c1547603a2:test/output-tests/dune
 # end context for test/output-tests/dune
 
 # begin context for test/output-tests/test1.expected

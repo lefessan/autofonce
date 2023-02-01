@@ -9,11 +9,12 @@
 (**************************************************************************)
 
 open EzCompat (* for IntMap *)
+
 open Types
 open Globals (* toplevel references *)
 
 type scheduler = {
-  suite : testsuite ;
+  state : state ;
   test_fifo : test Queue.t ;
   mutable running_tests : running_test IntMap.t ;
   mutable current_jobs : int ;
@@ -21,9 +22,9 @@ type scheduler = {
 
 and running_test = {
   scheduler : scheduler ;
-  running_test : test ;
+  running_test : tester ;
   mutable waiting_actions : action list list ;
-  mutable current_check : check option ;
+  mutable current_check : checker option ;
 }
 
 let b = Buffer.create 100
@@ -35,27 +36,28 @@ let update_status s =
     match IntMap.min_elt s.running_tests with
     | None -> assert false
     | Some (_, r) ->
-        let t = r.running_test in
+        let ter = r.running_test in
+        let t = ter.tester_test in
         Printf.bprintf b " %d %-38s"
-          t.id
-          (let len = String.length t.name in
+          t.test_id
+          (let len = String.length t.test_name in
            if len > 38 then
-             (String.sub t.name 0 36 ^ "..")
+             (String.sub t.test_name 0 36 ^ "..")
            else
-             t.name
+             t.test_name
           );
         if n > 1 then
           Printf.bprintf b " +%d ]" (n-1)
         else
           Buffer.add_string b " ]"
   end;
-  s.suite.status <- Buffer.contents b
+  s.state.state_status <- Buffer.contents b
 
 let rec schedule_job r =
   match r.waiting_actions with
   | [] ->
       Runner_common.test_is_ok r.running_test ;
-      Runner_common.print_status r.running_test.suite
+      Runner_common.print_status r.running_test.tester_state
   | actions :: action_queue ->
       match actions with
       | [] ->
@@ -70,13 +72,15 @@ and schedule_action r action =
   match action with
   | AT_SKIP -> Runner_common.test_is_skip r.running_test
   | AT_CHECK check ->
-      let pid = Runner_common.start_check check in
-      if !Globals.verbose > 1 then Printf.eprintf "JOB %d STARTED\n%!" pid;
-      r.current_check <- Some check ;
+      let ter = r.running_test in
+      let cer = Runner_common.start_check ter check in
+      if !Globals.verbose > 1 then
+        Printf.eprintf "JOB %d STARTED\n%!" cer.checker_pid;
+      r.current_check <- Some cer ;
 
       let s = r.scheduler in
       s.current_jobs <- s.current_jobs + 1;
-      s.running_tests <- IntMap.add pid r s.running_tests;
+      s.running_tests <- IntMap.add cer.checker_pid r s.running_tests;
       update_status s
 
   | _ ->
@@ -85,33 +89,35 @@ and schedule_action r action =
 
   let schedule_test s t =
     if !Globals.verbose > 1 then Printf.eprintf "schedule_test\n%!";
+    let state = s.state in
+    let ter = Runner_common.start_test state t in
     let r = {
       scheduler = s ;
-      running_test = t ;
-      waiting_actions = [ t.actions ] ;
+      running_test = ter ;
+      waiting_actions = [ t.test_actions ] ;
       current_check = None ;
     } in
-    Runner_common.start_test t;
     schedule_job r
 
   and job_terminated r retcode =
     if !Globals.verbose > 1 then Printf.eprintf "job_terminated\n%!";
     match r.current_check with
     | None -> assert false
-    | Some check ->
-        let failures = Runner_common.check_failures check retcode in
+    | Some cer ->
+        let check = cer.checker_check in
+        let failures = Runner_common.check_failures cer retcode in
         match failures with
         | [] -> (* SUCCESS *)
-            r.waiting_actions <- check.run_if_pass :: r.waiting_actions;
+            r.waiting_actions <- check.check_run_if_pass :: r.waiting_actions;
             schedule_job r
         | failures ->
-            match check.run_if_fail with
+            match check.check_run_if_fail with
             | [] ->
                 let failures = String.concat " " failures in
                 if retcode = 77 then
-                  Runner_common.test_is_skipped_fail check failures
+                  Runner_common.test_is_skipped_fail cer failures
                 else
-                  Runner_common.test_is_failed check failures
+                  Runner_common.test_is_failed cer failures
             | actions ->
                 r.waiting_actions <- actions :: r.waiting_actions;
                 schedule_job r
@@ -145,9 +151,10 @@ let run s =
   in
   iter ()
 
-let exec_testsuite c =
+let exec_testsuite state =
+  let c = state.state_suite in
   let s = {
-    suite = c;
+    state;
     test_fifo = Queue.create () ;
     running_tests = IntMap.empty;
     current_jobs = 0;
@@ -156,5 +163,5 @@ let exec_testsuite c =
     Queue.add t s.test_fifo;
   in
   Filter.select_tests select_test c;
-  c.ntests <- Queue.length s.test_fifo ;
+  state.state_ntests <- Queue.length s.test_fifo ;
   run s

@@ -1,4 +1,4 @@
-{1 Library autofonce_share}
+{1 Library autofonce_core}
 
 autofonce is a modern runner for GNU Autoconf Testsuites:
 autofonce has a limited understanding of m4 macros that appear in testsuites
@@ -10,5 +10,5 @@ way:
 
 
 
-The entry point of this library is the module: {!Autofonce_share}.
+The entry point of this library is the module: {!Autofonce_core}.
 

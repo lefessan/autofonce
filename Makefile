@@ -20,12 +20,12 @@ all: build
 build:
 	./scripts/before.sh build
 	opam exec -- dune build @install
-	./scripts/copy-bin.sh autofonce autofonce_lib autofonce_m4 autofonce_share
+	./scripts/copy-bin.sh autofonce autofonce_core autofonce_lib autofonce_m4 autofonce_share
 	./scripts/after.sh build
 
 build-deps:
 	if ! [ -e _opam ]; then \
-	   opam switch create . 4.10.0 ; \
+	   opam switch create . 4.13.0 ; \
 	fi
 	opam install ./*.opam --deps-only
 

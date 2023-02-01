@@ -1,6 +1,6 @@
 
 # name of package
-name = "autofonce_lib"
+name = "autofonce_core"
 skeleton = "library"
 
 # version if different from project version
@@ -48,11 +48,10 @@ skip = [ "main.ml" ]
 [dependencies]
 ez_file = "0.3"
 ocplib_stuff = "0.1"
-ez_cmdliner = "0.4"
+ez_cmdliner = "0.2"
 ANSITerminal = "0.8"
 autofonce_m4 = "version"
 autofonce_share = "version"
-autofonce_core = "version"
 
 # package tools dependencies
 [tools]

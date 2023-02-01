@@ -9,14 +9,20 @@
 (**************************************************************************)
 
 open EzCompat (* for IntMap *)
-open Types
 open Ez_file.V1
 open EzFile.OP
+
+open Types
 open Globals (* toplevel references *)
 
-let buffer_test c t fmt =
+open Autofonce_core
+
+let buffer_test ter fmt =
+  let t = ter.tester_test in
+  let state = ter.tester_state in
   Printf.kprintf (fun s ->
-      Printf.bprintf c.buffer "%04d %-50s %s\n"  t.id t.name s) fmt
+      Printf.bprintf state.state_buffer "%04d %-50s %s\n"
+        t.test_id t.test_name s) fmt
 
 let commented s =
   "# " ^ String.concat "\n# " (EzString.split s '\n')
@@ -27,58 +33,62 @@ let output fmt =
       Terminal.erase Eol;
       Printf.printf "%s\n%!" s) fmt
 
-let output_test t fmt =
+let output_test ter fmt =
+  let t = ter.tester_test in
   Printf.kprintf (fun s ->
-      output "%04d %-50s %s"  t.id t.name s) fmt
+      output "%04d %-50s %s"  t.test_id t.test_name s) fmt
 
 let print_ntests n list =
-  List.iteri (fun i t ->
-      if i < n then Printf.printf " %04d" t.id
+  List.iteri (fun i ter ->
+      if i < n then Printf.printf " %04d" ter.tester_test.test_id
       else
       if i = n then Printf.printf " ..."
     ) list
 
-let test_dir t =
-  tests_dir // Printf.sprintf "%04d" t.id
+let test_dir ter =
+  tests_dir // Printf.sprintf "%04d" ter.tester_test.test_id
 
-let test_is_ok t =
-  if not !keep_all then Misc.remove_rec ( test_dir t ) ;
-  let c = t.suite in
-  c.ntests_ok <- c.ntests_ok + 1
+let test_is_ok ter =
+  if not !keep_all then Misc.remove_rec ( test_dir ter ) ;
+  let state = ter.tester_state in
+  state.state_ntests_ok <- state.state_ntests_ok + 1
 
-let test_is_skipped_fail check s =
-  let t = check.test in
-  let c = t.suite in
-  if not !keep_skipped then Misc.remove_rec ( test_dir t ) ;
-  c.tests_failexpected <- t :: c.tests_failexpected ;
-  buffer_test c t "SKIPPED FAIL (%s %s)" check.check_loc s
+let test_is_skipped_fail cer s =
+  let ter = cer.checker_tester in
+  let state = ter.tester_state in
+  let check = cer.checker_check in
+  if not !keep_skipped then Misc.remove_rec ( test_dir ter ) ;
+  state.state_tests_failexpected <- ter :: state.state_tests_failexpected ;
+  buffer_test ter "SKIPPED FAIL (%s %s)" check.check_loc s
 
-let test_is_failed check s =
-  let t = check.test in
-  let c = t.suite in
-  if check.test.fail_expected then begin
-    c.tests_failexpected <- t :: c.tests_failexpected ;
-    if not !keep_skipped then Misc.remove_rec ( test_dir t ) ;
-    buffer_test c t "EXPECTED FAIL (%s %s)" check.check_loc s;
+let test_is_failed cer s =
+  let ter = cer.checker_tester in
+  let state = ter.tester_state in
+  let check = cer.checker_check in
+  if ter.tester_fail_expected then begin
+    state.state_tests_failexpected <- ter :: state.state_tests_failexpected ;
+    if not !keep_skipped then Misc.remove_rec ( test_dir ter ) ;
+    buffer_test ter "EXPECTED FAIL (%s %s)" check.check_loc s;
   end else begin
-    c.tests_failed <- t :: c.tests_failed ;
-    output_test t "FAIL (%s %s)" check.check_loc s;
-    buffer_test c t "FAIL (%s %s)" check.check_loc s;
+    state.state_tests_failed <- ter :: state.state_tests_failed ;
+    output_test ter "FAIL (%s %s)" check.check_loc s;
+    buffer_test ter "FAIL (%s %s)" check.check_loc s;
     if !stop_on_first_failure then exit 2;
   end
 
-let test_is_skip t =
-  let c = t.suite in
-  c.tests_skipped <- t :: c.tests_skipped ;
-  if not !keep_skipped then Misc.remove_rec ( test_dir t ) ;
-  buffer_test c t "SKIP (%s)" t.test_loc
+let test_is_skip ter =
+  let t = ter.tester_test in
+  let state = ter.tester_state in
+  state.state_tests_skipped <- ter :: state.state_tests_skipped ;
+  if not !keep_skipped then Misc.remove_rec ( test_dir ter ) ;
+  buffer_test ter "SKIP (%s)" t.test_loc
 
-let exec_action_no_check t action =
+let exec_action_no_check ter action =
   match action with
   | AT_DATA { file ; content } ->
-      EzFile.write_file ( test_dir t // file ) content
+      EzFile.write_file ( test_dir ter // file ) content
   | AT_CHECK _job -> assert false
-  | AT_XFAIL_IF "true" -> t.fail_expected <- true
+  | AT_XFAIL_IF "true" -> ter.tester_fail_expected <- true
   | AT_CAPTURE_FILE file ->
       if (Sys.file_exists file) then ()
   (* TODO: save file in log in case of failure *)
@@ -86,23 +96,30 @@ let exec_action_no_check t action =
       Printf.kprintf failwith "exec_action: %s not implemented"
         ( string_of_action action )
 
-let print_status c =
+let print_status state =
   Terminal.move_bol ();
   Terminal.erase Eol;
-  Printf.printf " %d / %d%!" c.ntests_ran c.ntests;
-  if c.tests_failed <> [] then begin
+  Printf.printf " %d / %d%!" state.state_ntests_ran state.state_ntests;
+  if state.state_tests_failed <> [] then begin
     Terminal.printf [ Terminal.red ]
-      "  %d failed:%!" (List.length c.tests_failed);
-    print_ntests 10 c.tests_failed;
+      "  %d failed:%!" (List.length state.state_tests_failed);
+    print_ntests 10 state.state_tests_failed;
   end;
-  Printf.printf " %s%!" c.status;
+  Printf.printf " %s%!" state.state_status;
   ()
 
-let start_test t =
-  let c = t.suite in
-  c.ntests_ran <- c.ntests_ran + 1;
-  print_status c;
-  let test_dir = tests_dir // Printf.sprintf "%04d" t.id in
+let start_test state t =
+  let c = state.state_suite in
+  state.state_ntests_ran <- state.state_ntests_ran + 1;
+  print_status state;
+  let ter = {
+    tester_test = t ;
+    tester_state = state ;
+    tester_suite = c ;
+    tester_fail_expected = false ;
+  }
+  in
+  let test_dir = test_dir ter in
   if Sys.file_exists test_dir then
     Misc.remove_all test_dir
   else
@@ -112,14 +129,13 @@ let start_test t =
   Printf.sprintf {|#!/bin/sh
 AUTOTEST_TESTSUITE="%s"
 %s
-|} c.testsuite_dir c.autotest_env;
+|} c.suite_dir state.state_env;
   Unix.chmod ( test_dir // env_autotest_sh ) 0o755;
-  ()
+  ter
 
-let start_check check =
-  let t = check.test in
-  let check_prefix = Printf.sprintf "%s_%s" check.step
-      (if check.is_check then "CHECK" else "SHELL")
+let start_check ter check =
+  let state = ter.tester_state in
+  let check_prefix = Printf.sprintf "%s_%s" check.check_step check.check_kind
   in
   let check_sh = Printf.sprintf "%s.sh" check_prefix in
   let check_stdout = Printf.sprintf "%s.out" check_prefix in
@@ -136,29 +152,35 @@ let start_check check =
 |}
       autotest_env
       env_autotest_sh
-      (if check.is_check then commented (string_of_check check) else
-         "# SHELL COMMAND")
-      check.command
+      (commented (string_of_check check))
+      check.check_command
   in
-  let test_dir = test_dir t in
+  let test_dir = test_dir ter in
   EzFile.write_file ( test_dir // check_sh ) check_content ;
   Unix.chmod (test_dir // check_sh ) 0o755 ;
   Unix.chdir test_dir ;
-  let pid = Call.create_process
+  let checker_pid = Call.create_process
       [ "./" ^ check_sh ]
       ~stdout:check_stdout
       ~stderr:check_stderr
   in
-  let c = t.suite in
-  Unix.chdir c.autotest_dir ;
-  pid
+  Unix.chdir state.state_run_dir ;
+ {
+    checker_check = check ;
+    checker_tester = ter ;
+    checker_pid ;
+  }
 
-let check_failures check retcode =
-  let t = check.test in
-  let test_dir = test_dir t in
-  let check_prefix = Printf.sprintf "%s_%s" check.step
-      (if check.is_check then "CHECK" else "SHELL")
+let check_failures cer retcode =
+  let check = cer.checker_check in
+  let ter = cer.checker_tester in
+  let state = ter.tester_state in
+  let test_dir = test_dir ter in
+  let check_prefix = Printf.sprintf "%s_%s" check.check_step
+      check.check_kind
   in
+  if check.check_kind = "CHECK" then
+    state.state_nchecks <- state.state_nchecks + 1;
   let check_stdout = Printf.sprintf "%s.out" check_prefix in
   let check_stderr = Printf.sprintf "%s.err" check_prefix in
   let compare to_check file kind =
@@ -174,13 +196,53 @@ let check_failures check retcode =
           [ kind ]
         end else []
   in
-  begin match check.retcode with
+  begin match check.check_retcode with
     | None -> []
     | Some expected ->
         if retcode <> expected then [
           "exitcode" ] else []
   end
   @
-  compare check.stdout check_stdout "stdout"
+  compare check.check_stdout check_stdout "stdout"
   @
-  compare check.stderr check_stderr "stderr"
+  compare check.check_stderr check_stderr "stderr"
+
+let create_state c =
+
+  let state_run_dir, state_env =
+    try
+      let autotest_file = Misc.find_file autotest_env in
+      let autotest_dir = Filename.dirname autotest_file in
+      Unix.chdir autotest_dir;
+      let autotest_env = EzFile.read_file autotest_env in
+      ( autotest_dir, autotest_env )
+    with
+    | Not_found ->
+        Printf.eprintf "Error: file %S not found in top dirs\n%!" autotest_env;
+        Printf.eprintf
+          "This project-specific file is used to configure the tests, and\n";
+        Printf.eprintf
+          " tell autofonce where to create the _autotest/ directory to run\n";
+        Printf.eprintf
+          " tests.\n";
+        Printf.eprintf
+          "Use `autofonce init` to automatically create it if you think\n";
+        Printf.eprintf
+          " that this project is known by `autofonce`.\n";
+        exit 2
+  in
+
+  { state_suite = c ;
+    state_run_dir ;
+    state_env ;
+    state_status = "";
+    state_banner = "" ;
+    state_ntests_ran = 0 ;
+    state_ntests_ok = 0 ;
+    state_tests_failed = [] ;
+    state_tests_skipped = [] ;
+    state_tests_failexpected = [] ;
+    state_buffer = Buffer.create 10000;
+    state_ntests = c.suite_ntests ;
+    state_nchecks = 0;
+  }

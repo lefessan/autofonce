@@ -1,17 +1,19 @@
 (**************************************************************************)
 (*                                                                        *)
-(*  Copyright (c) 2023 OCamlPro SAS                                       *)
+(*  Copyright (c) 2021 OCamlPro & Origin Labs                             *)
 (*                                                                        *)
 (*  All rights reserved.                                                  *)
-(*  This file is distributed under the terms of the GNU General Public    *)
-(*  License version 3.0, as described in the LICENSE.md file in the root  *)
-(*  directory of this source tree.                                        *)
+(*  This file is distributed under the terms of the GNU Lesser General    *)
+(*  Public License version 2.1, with the special exception on linking     *)
+(*  described in the LICENSE.md file in the root directory.               *)
 (*                                                                        *)
 (*                                                                        *)
 (**************************************************************************)
 
+val init : ?loc:M4Types.location -> Lexing.lexbuf -> unit
 
-(* If you delete or rename this file, you should add
-   'src/autofonce_m4/main.ml' to the 'skip' field in "drom.toml" *)
+val unescape : ?last:bool -> Lexing.lexbuf -> string
 
-let main () = Printf.printf "Hello world!\n"
+val token : Lexing.lexbuf -> M4Types.location * M4Types.token
+
+val location : Lexing.lexbuf -> M4Types.location

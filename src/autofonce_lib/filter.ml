@@ -9,6 +9,8 @@
 (**************************************************************************)
 
 open EzCompat
+
+open Autofonce_core
 open Types
 open Globals (* toplevel references *)
 
@@ -26,16 +28,26 @@ let select_tests select_test c =
     | [] -> StringSet.empty
     | ids -> StringSet.of_list ids
   in
+  let nokeyword_set =
+    match !tests_nokeywords with
+    | [] -> StringSet.empty
+    | ids -> StringSet.of_list ids
+  in
   List.iter (fun t ->
-      if t.id >= !exec_after
-      && t.id <= !exec_before
+      if t.test_id >= !exec_after
+      && t.test_id <= !exec_before
       && (all_tests
-          || IntSet.mem t.id id_set
-          || List.exists (fun k -> StringSet.mem k keyword_set) t.keywords
+          || IntSet.mem t.test_id id_set
+          || List.exists (fun k -> StringSet.mem k keyword_set)
+            t.test_keywords
          )
+      && not (
+          List.exists (fun k -> StringSet.mem k nokeyword_set)
+            t.test_keywords
+        )
       then
         select_test t)
-    c.tests
+    c.suite_tests
 
 open Ezcmd.V2
 open EZCMD.TYPES
@@ -68,6 +80,13 @@ let args = [
       clean_tests_dir := false;
     ),
   EZCMD.info ~docv:"ID" "Exec ending at test $(docv)";
+
+  [ "N"; "not" ], Arg.String (fun s ->
+      tests_nokeywords := !tests_nokeywords @
+                        EzString.split_simplify s ' ';
+      clean_tests_dir := false
+    ),
+  EZCMD.info ~docv:"KEYWORD" "Skip tests matching KEYWORD";
 
   [], Arg.Anons (fun list ->
       List.iter (fun s ->
