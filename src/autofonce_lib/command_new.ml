@@ -12,6 +12,8 @@ open Ezcmd.V2
 open EZCMD.TYPES
 open Ez_file.V1
 
+open Autofonce_core
+
 let m4_escape s =
   let b = Buffer.create (String.length s) in
   Buffer.add_char b '[';

@@ -11,28 +11,27 @@
 open M4Types
 
 let string_of_token = function
-  | QUOTED s -> Printf.sprintf "QUOTED %S" s
   | SHELL s -> Printf.sprintf "SHELL %S" s
   | IDENT s -> Printf.sprintf "IDENT %S" s
-  | LPAREN -> "LPAREN"
-  | RPAREN -> "RPAREN"
-  | COMMA -> "COMMA"
+  | ONE_ARG s -> Printf.sprintf "ONE_ARG %S" s
+  | FIRST_ARG s -> Printf.sprintf "FIRST_ARG %S" s
+  | NEXT_ARG s -> Printf.sprintf "NEXT_ARG %S" s
+  | LAST_ARG s -> Printf.sprintf "LAST_ARG %S" s
   | EOF -> "EOF"
 
 let string_of_location loc =
   Printf.sprintf "%s:%d:%d" loc.file loc.line loc.char
 
-let rec string_of_value = function
-  | Quoted s -> Printf.sprintf "%S" s
-  | Block list ->
-      String.concat "\n"
-        ( List.map string_of_macro list )
+let string_of_arg arg = arg.arg
 
-and string_of_macro macro =
-  match macro.exp with
+let string_of_macro statement =
+  match statement.kind with
   | Macro ( ident, args ) ->
-    Printf.sprintf "Macro: %s ( %s )" ident
-      ( String.concat ", "
-          ( List.map string_of_value args ))
+      Printf.sprintf "Macro: %s ( %s )" ident
+        ( String.concat ", "
+            ( List.map string_of_arg args ))
   | Shell shell ->
       Printf.sprintf "Shell: %s" shell
+
+let string_of_block list =
+  String.concat "\n" ( List.map string_of_macro list )

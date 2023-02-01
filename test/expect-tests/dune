@@ -6,5 +6,5 @@
   (pps ppx_expect))
  (inline_tests
   (modes best)) ; add js for testing with nodejs
- (libraries autofonce_lib autofonce_m4 autofonce_share) ; add your project libraries here
+ (libraries autofonce_core autofonce_lib autofonce_m4 autofonce_share) ; add your project libraries here
  )

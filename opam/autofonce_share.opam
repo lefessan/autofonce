@@ -2,12 +2,12 @@
 # Do not modify, or add to the `skip` field of `drom.toml`.
 opam-version: "2.0"
 name: "autofonce_share"
-version: "0.3"
+version: "0.4"
 license: "GPL-3.0-only"
 synopsis: "autofonce: modern runner for GNU Autoconf Testsuites"
 description: """\
-autoconf is a modern runner for GNU Autoconf Testsuites:
-autoconf has a limited understanding of m4 macros that appear in testsuites
+autofonce is a modern runner for GNU Autoconf Testsuites:
+autofonce has a limited understanding of m4 macros that appear in testsuites
 written for the GNU Autoconf testsuites, and can run such tests in a modern
 way:
 * automatic run from any directory
@@ -41,7 +41,7 @@ install: [
   ["sh" "-c" "./scripts/before.sh install '%{name}%'"]
 ]
 depends: [
-  "ocaml" {>= "4.07.0"}
+  "ocaml" {>= "4.10.0"}
   "dune" {>= "2.7.0"}
   "crunch" {>= "3.2.0"}
   "ppx_inline_test" {with-test}

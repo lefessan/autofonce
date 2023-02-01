@@ -45,7 +45,7 @@ let cmd =
   EZCMD.sub
     "run"
     (fun () ->
-       let c = Testsuite.find () in
+       let c = Autofonce_core.Parser.find !Globals.testsuite in
        Testsuite.exec c
     )
     ~args

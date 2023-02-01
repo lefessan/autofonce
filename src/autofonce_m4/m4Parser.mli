@@ -8,4 +8,14 @@
 (*                                                                        *)
 (**************************************************************************)
 
-val load_file : Types.testsuite -> string -> unit
+val parse_file : string -> M4Types.block
+val parse_string : ?loc:M4Types.location -> string -> M4Types.block
+
+(* remove one level of quotes (brackets). With `~last:true`, expand
+   quadrigraphs *)
+val unescape : ?last:bool -> string -> string
+
+(* unescape with last=true. Must be done before using any string
+   argument. Must not be done if argument is already escaped
+   (typically in run-if-pass/run-if-fail) *)
+val to_string : M4Types.arg -> string

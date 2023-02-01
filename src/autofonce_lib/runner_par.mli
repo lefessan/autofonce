@@ -8,4 +8,4 @@
 (*                                                                        *)
 (**************************************************************************)
 
-val exec_testsuite : Types.testsuite -> unit
+val exec_testsuite : Types.state -> unit

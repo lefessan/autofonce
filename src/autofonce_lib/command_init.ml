@@ -12,6 +12,7 @@ open Ezcmd.V2
 open EZCMD.TYPES
 open Ez_file.V1
 
+open Autofonce_core
 open Globals (* toplevel references *)
 
 let list_known_project () =

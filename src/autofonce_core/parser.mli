@@ -8,35 +8,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
-type location = {
-  file : string ;
-  line : int ;
-  char : int ;
-}
+(* Read filename to get the corresponding testsuite *)
+val read : string -> Types.suite
 
-exception Error of string * location
-
-type token =
-  | SHELL of string
-  | IDENT of string
-  | ONE_ARG of string
-  | FIRST_ARG of string
-  | NEXT_ARG of string
-  | LAST_ARG of string
-  | EOF
-
-type block = statement list
-
-and kind =
-  | Macro of string * arg list
-  | Shell of string
-
-and statement = {
-  kind : kind ;
-  loc : location ;
-}
-
-and arg = {
-  arg : string ;
-  arg_loc : location ;
-}
+(* Try to find filename in the upper directories, and read the testsuite *)
+val find : string -> Types.suite

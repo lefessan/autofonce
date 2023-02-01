@@ -20,7 +20,7 @@ let cmd =
   EZCMD.sub
     "list"
     (fun () ->
-       let c = Testsuite.find () in
+       let c = Autofonce_core.Parser.find !Globals.testsuite in
        Testsuite.print c
     )
     ~args
