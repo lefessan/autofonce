@@ -3,14 +3,16 @@
 (*  Copyright (c) 2023 OCamlPro SAS                                       *)
 (*                                                                        *)
 (*  All rights reserved.                                                  *)
-(*  This file is distributed under the terms of the                       *)
-(*  OCAMLPRO-NON-COMMERCIAL license.                                      *)
+(*  This file is distributed under the terms of the GNU General Public    *)
+(*  License version 3.0, as described in the LICENSE.md file in the root  *)
+(*  directory of this source tree.                                        *)
+(*                                                                        *)
 (*                                                                        *)
 (**************************************************************************)
 
 open Ezcmd.V2
 
-open Autofonce_m4 (* for M4Types, M4Parser *)
+module Misc = Autofonce_misc.Misc
 
 let set_verbosity n =
   Globals.verbose := n;
@@ -26,7 +28,7 @@ module PROGRAM = struct
   let backtrace_var = Some "AUTOFONCE_BACKTRACE"
   let usage = "Modern runner for GNU Autoconf testsuites"
   let version = Version.version
-  exception Error = Types.Error
+  exception Error = Misc.Error
 end
 module MAIN = EZCMD.MAKE( PROGRAM )
 include PROGRAM
@@ -36,6 +38,7 @@ let commands = [
   Command_list.cmd ;
   Command_run.cmd ;
   Command_new.cmd ;
+  Command_promote.cmd ;
 ]
 
 let main () =

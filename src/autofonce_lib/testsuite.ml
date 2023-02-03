@@ -3,8 +3,10 @@
 (*  Copyright (c) 2023 OCamlPro SAS                                       *)
 (*                                                                        *)
 (*  All rights reserved.                                                  *)
-(*  This file is distributed under the terms of the                       *)
-(*  OCAMLPRO-NON-COMMERCIAL license.                                      *)
+(*  This file is distributed under the terms of the GNU General Public    *)
+(*  License version 3.0, as described in the LICENSE.md file in the root  *)
+(*  directory of this source tree.                                        *)
+(*                                                                        *)
 (*                                                                        *)
 (**************************************************************************)
 
@@ -14,18 +16,37 @@ open EZCMD.TYPES
 open Ez_file.V1
 open EzFile.OP
 
-open Autofonce_core
+module Misc = Autofonce_misc.Misc
+module Parser = Autofonce_core.Parser
 open Types
 open Globals (* toplevel references *)
+
+let find () =
+  try
+    Autofonce_core.Parser.find !Globals.testsuite
+  with
+  | Autofonce_core.Parser.TestsuiteNotFound filename ->
+      Printf.eprintf "Error: could not find %s in upper directories\n%!"
+        filename;
+      exit 2
 
 let exec c =
   Misc.set_signal_handle Sys.sigint (fun _ -> exit 2);
   Misc.set_signal_handle Sys.sigterm (fun _ -> exit 2);
+
+  let state = Runner_common.create_state c in
+  (* we are now in state_run_dir, i.e. before _autofonce/ *)
+
   if !clean_tests_dir && Sys.file_exists tests_dir then
     Misc.remove_rec tests_dir;
-  if not ( Sys.file_exists tests_dir ) then Unix.mkdir tests_dir 0o755;
-  Unix.putenv "AUTOTEST_TESTSUITE" c.suite_dir;
-  let state = Runner_common.create_state c in
+  if not ( Sys.file_exists tests_dir ) then begin
+    Printf.eprintf "Creating testing directory %s\n%!"
+      (Sys.getcwd () // tests_dir);
+    Unix.mkdir tests_dir 0o755;
+  end else begin
+    Printf.eprintf "Using testing directory %s\n%!"
+      (Sys.getcwd () // tests_dir);
+  end;
   Runner_common.output "Executing testsuite in %s"
     (state.state_run_dir // tests_dir);
 
@@ -77,7 +98,8 @@ let exec c =
   ()
 
 let print_test _c t =
-  Printf.printf "%04d %-50s %s\n%!" t.test_id t.test_name t.test_loc;
+  Printf.printf "%04d %-50s %s\n%!" t.test_id t.test_name
+    ( Parser.name_of_loc t.test_loc );
   ()
 
 let print c =

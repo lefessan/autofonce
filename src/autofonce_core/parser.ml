@@ -3,19 +3,23 @@
 (*  Copyright (c) 2023 OCamlPro SAS                                       *)
 (*                                                                        *)
 (*  All rights reserved.                                                  *)
-(*  This file is distributed under the terms of the                       *)
-(*  OCAMLPRO-NON-COMMERCIAL license.                                      *)
+(*  This file is distributed under the terms of the GNU General Public    *)
+(*  License version 3.0, as described in the LICENSE.md file in the root  *)
+(*  directory of this source tree.                                        *)
+(*                                                                        *)
 (*                                                                        *)
 (**************************************************************************)
-
-
-open Autofonce_m4 (* for M4Types, M4Parser *)
-open M4Types
 
 open EzCompat (* for IntMap *)
 open Types
 open Ez_file.V1
 open EzFile.OP
+
+open Autofonce_m4.M4Types
+module M4Printer = Autofonce_m4.M4Printer
+module M4Parser = Autofonce_m4.M4Parser
+module M4Types = Autofonce_m4.M4Types
+module Misc = Autofonce_misc.Misc
 
 let name_of_loc loc =
   M4Printer.string_of_location { loc with file = Filename.basename loc.file }
@@ -24,7 +28,7 @@ let int_of_string macro n =
   try
     int_of_string n
   with _ ->
-    Misc.macro_error macro "int_of_string (%S)" n
+    M4Parser.macro_error macro "int_of_string (%S)" n
 
 let rec iter_macros c macros =
   match macros with
@@ -32,7 +36,8 @@ let rec iter_macros c macros =
   | macro :: macros ->
       match macro.kind with
       | Shell cmd   ->
-          Printf.eprintf "Shell: [ %s ]\n%!" cmd;
+          Printf.eprintf "At %s:\n  Discarding toplevel shell line: %s\n%!"
+            (M4Printer.string_of_location macro.loc) cmd;
           iter_macros c macros (* TODO *)
       | Macro ("m4_include", [ filename ]) ->
           let filename = M4Parser.to_string filename in
@@ -67,7 +72,7 @@ let rec iter_macros c macros =
           let test_id = c.suite_ntests in
           let t = {
             test_suite = c;
-            test_loc = name_of_loc macro.loc ;
+            test_loc = macro.loc ;
             test_name ;
             test_id;
             test_keywords = [];
@@ -84,9 +89,8 @@ let rec iter_macros c macros =
           iter_macros c macros
 
       | Macro (_, _) ->
-          Printf.eprintf "At top, unexpected macro %S\n%!"
-            (M4Printer.string_of_macro macro) ;
-          assert false
+          M4Parser.macro_error macro "At top, unexpected macro %S"
+            (M4Printer.string_of_macro macro)
 
 and iter_actions t steps actions macros =
   match macros with
@@ -100,7 +104,9 @@ and iter_actions t steps actions macros =
                              @ EzString.split_simplify keywords ' ';
           iter_actions t steps actions macros
 
-      | Macro ("AT_CLEANUP", [] ) -> macros, List.rev actions
+      | Macro ("AT_CLEANUP", [] ) ->
+          macros,
+          List.rev ( AT_CLEANUP { loc = macro.loc } :: actions )
 
       | Shell s when EzString.starts_with s ~prefix:"if "
             && EzString.ends_with s ~suffix:"then"
@@ -133,7 +139,7 @@ and parse_if t steps actions check_loc check_command macros =
         check_step = next_step steps ;
         check_kind = "IF" ;
         check_command ;
-        check_loc = name_of_loc check_loc ;
+        check_loc ;
         check_retcode = Some 0 ;
         check_stdout = Ignore ;
         check_stderr = Ignore ;
@@ -169,7 +175,7 @@ and parse_action t steps macro =
               check_step = next_step steps ;
               check_kind = "SKIPIF" ;
               check_command ;
-              check_loc = name_of_loc macro.loc ;
+              check_loc = macro.loc ;
               check_retcode = Some 1 ;
               check_stdout = Ignore ;
               check_stderr = Ignore ;
@@ -180,10 +186,10 @@ and parse_action t steps macro =
       end
 
   | Macro ("AT_CHECK", args ) ->
-      let check_loc = name_of_loc macro.loc in
+      let check_loc = macro.loc in
       let check_command, args =
         match args with
-        | [] -> Misc.macro_error macro "Missing argument 1 to AT_CHECK"
+        | [] -> M4Parser.macro_error macro "Missing argument 1 to AT_CHECK"
         | command :: args ->
             M4Parser.to_string command, args
       in
@@ -237,7 +243,7 @@ and parse_action t steps macro =
         match args with
         | [] -> ()
         | _ ->
-            Misc.macro_error macro "extra arguments to AT_CHECK"
+            M4Parser.macro_error macro "extra arguments to AT_CHECK"
       end;
       let check_step = next_step steps in
       AT_CHECK {
@@ -262,7 +268,7 @@ and parse_action t steps macro =
         check_step = next_step steps ;
         check_kind = "SHELL" ;
         check_command ;
-        check_loc = name_of_loc macro.loc ;
+        check_loc = macro.loc ;
         check_retcode = Some 0 ;
         check_stdout = Ignore ;
         check_stderr = Ignore ;
@@ -320,7 +326,7 @@ let read filename =
     suite_tested_programs = [] ;
     suite_copyright = "" ;
     suite_banners = [];
-
+    suite_file = Filename.basename filename;
     suite_dir ;
   }
   in
@@ -329,19 +335,25 @@ let read filename =
   c.suite_tests <- List.rev c.suite_tests ;
   c
 
+exception TestsuiteNotFound of string
+
 let find testsuite_at =
-  try
-    let filename = Misc.find_file testsuite_at in
-    Printf.eprintf "Found testsuite in %s\n%!" filename;
-    let c = read filename in
-    Printf.eprintf "Found %d tests in testsuite\n%!" c.suite_ntests;
-    c
-  with
-  | M4Types.Error (msg, loc) ->
-      Printf.eprintf "Error at %s: %s\n%!"
-        (M4Printer.string_of_location loc) msg;
-      exit 2
-  | exn ->
-      Printf.eprintf "Fatal error: %s\n%!"
-        ( Printexc.to_string exn );
-      exit 2
+  match Misc.find_file testsuite_at with
+  | exception Not_found -> raise ( TestsuiteNotFound testsuite_at)
+  | filename ->
+      Printf.eprintf "Found testsuite in %s\n%!" filename;
+      let c = read filename in
+      Printf.eprintf "Found %d tests in testsuite\n%!" c.suite_ntests;
+      c
+
+let m4_escape s =
+  let b = Buffer.create (String.length s) in
+  Buffer.add_char b '[';
+  for i = 0 to String.length s - 1 do
+    match s.[i] with
+    | '[' -> Buffer.add_string b "@<:@"
+    | ']' -> Buffer.add_string b "@:>@"
+    | c -> Buffer.add_char b c
+  done;
+  Buffer.add_char b ']';
+  Buffer.contents b

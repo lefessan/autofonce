@@ -3,8 +3,10 @@
 (*  Copyright (c) 2023 OCamlPro SAS                                       *)
 (*                                                                        *)
 (*  All rights reserved.                                                  *)
-(*  This file is distributed under the terms of the                       *)
-(*  OCAMLPRO-NON-COMMERCIAL license.                                      *)
+(*  This file is distributed under the terms of the GNU General Public    *)
+(*  License version 3.0, as described in the LICENSE.md file in the root  *)
+(*  directory of this source tree.                                        *)
+(*                                                                        *)
 (*                                                                        *)
 (**************************************************************************)
 
@@ -20,8 +22,8 @@ let cmd =
   EZCMD.sub
     "list"
     (fun () ->
-       let c = Autofonce_core.Parser.find !Globals.testsuite in
-       Testsuite.print c
+       let suite = Testsuite.find () in
+       Testsuite.print suite
     )
     ~args
     ~doc: "Print testsuite of the current project"

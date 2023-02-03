@@ -36,7 +36,7 @@ Initialize project to run the testsuite with autofonce
 To run tests with **autofonce**, tests typically require
 some environment variables to be set. For that, **autofonce** uses a
 file named **autofonce.env** in the project. **autofonce** will also
-use this file to create a directory **_autotest/** where tests are
+use this file to create a directory **_autofonce/** where tests are
 run and results are kept.
 
 This command can be used to create the file **autofonce.env**
@@ -174,13 +174,13 @@ Run the testsuite.
   $ autofonce list --help
 
 
-To run tests, **autofonce** will create a directory **_autotest/** in the directory containing the file **autofonce.env**.
+To run tests, **autofonce** will create a directory **_autofonce/** in the directory containing the file **autofonce.env**.
 
-Every test is run independantly in a test directory with its number in the **_autotest/** directory. The test directory is removed if the test does not fail, or if it was expected to fail. Use the **--keep-more** argument to keep directories of tests that have been skipped or were expected to fail. Use the **--keep-all** argument to keep all directories.
+Every test is run independantly in a test directory with its number in the **_autofonce/** directory. The test directory is removed if the test does not fail, or if it was expected to fail. Use the **--keep-more** argument to keep directories of tests that have been skipped or were expected to fail. Use the **--keep-all** argument to keep all directories.
 
 You can select which tests to run, by selecting a range of tests using **--after TEST** or **--before TEST**, by selecting individual tests identifiers using **--id NUM** or by selecting keywords using **--keyword KEYWORD**.
 
-**autofonce** will only display failed tests on its output. You can use the argument **--print-all** to display all tests that were not OK, or just read the generated file **_autotests/results.log**.
+**autofonce** will only display failed tests on its output. You can use the argument **--print-all** to display all tests that were not OK, or just read the generated file **_autofonces/results.log**.
 
 **USAGE**
 ::
@@ -210,7 +210,7 @@ Where options are:
 
 * :code:`-k KEYWORD` or :code:`--keywords KEYWORD`   Run only tests matching KEYWORD
 
-* :code:`--no-clean`   Do not clean _autotest/ dir on startup
+* :code:`--no-clean`   Do not clean _autofonce/ dir on startup
 
 * :code:`--print-all`   Print also expected failures
 

@@ -53,6 +53,8 @@ ANSITerminal = "0.8"
 autofonce_m4 = "version"
 autofonce_share = "version"
 autofonce_core = "version"
+autofonce_patch = "version"
+autofonce_config  = "version"
 
 # package tools dependencies
 [tools]

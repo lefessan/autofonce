@@ -4,7 +4,7 @@
   (name autofonce_m4)
   (public_name autofonce_m4)
   (wrapped true)
-  (libraries ocplib_stuff ez_file )
+  (libraries ocplib_stuff ez_file autofonce_misc )
   
   
   )

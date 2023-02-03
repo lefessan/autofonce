@@ -4,7 +4,7 @@
   (name autofonce_lib)
   (public_name autofonce_lib)
   (wrapped true)
-  (libraries ocplib_stuff ez_file ez_cmdliner autofonce_share autofonce_m4 autofonce_core ANSITerminal )
+  (libraries ocplib_stuff ez_file ez_cmdliner autofonce_share autofonce_patch autofonce_m4 autofonce_core autofonce_config ANSITerminal )
   
   
   )

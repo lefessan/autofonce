@@ -3,13 +3,22 @@
 (*  Copyright (c) 2023 OCamlPro SAS                                       *)
 (*                                                                        *)
 (*  All rights reserved.                                                  *)
-(*  This file is distributed under the terms of the                       *)
-(*  OCAMLPRO-NON-COMMERCIAL license.                                      *)
+(*  This file is distributed under the terms of the GNU General Public    *)
+(*  License version 3.0, as described in the LICENSE.md file in the root  *)
+(*  directory of this source tree.                                        *)
+(*                                                                        *)
 (*                                                                        *)
 (**************************************************************************)
 
 open Ez_file.V1
 open M4Types
+
+let macro_error macro fmt =
+  Printf.kprintf (fun s ->
+      Autofonce_misc.Misc.error "Error %s at %s, in macro %s" s
+        (M4Printer.string_of_location macro.loc)
+        (M4Printer.string_of_macro macro)
+    ) fmt
 
 let error loc fmt =
   Printf.kprintf (fun s -> raise ( Error (s, loc))) fmt
