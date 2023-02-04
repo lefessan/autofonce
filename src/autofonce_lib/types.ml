@@ -10,15 +10,16 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Autofonce_core
-include Types
+include Autofonce_core.Types
+include Autofonce_config.Types
 
 (* imperative context, these values are meaningless at the end of
    functions *)
 type state = { (* variable name is `state` *)
   state_suite : suite ;
   state_run_dir : string ;
-  state_env : string ;
+  state_config : testsuite_config ;
+  state_project : project_config ;
   mutable state_banner : string ;
   mutable state_status : string ;
   mutable state_ntests_ran : int ;

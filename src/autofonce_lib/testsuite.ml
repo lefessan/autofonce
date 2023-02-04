@@ -18,37 +18,99 @@ open EzFile.OP
 
 module Misc = Autofonce_misc.Misc
 module Parser = Autofonce_core.Parser
+module Project_config = Autofonce_config.Project_config
 open Types
 open Globals (* toplevel references *)
 
-let find () =
-  try
-    Autofonce_core.Parser.find !Globals.testsuite
-  with
-  | Autofonce_core.Parser.TestsuiteNotFound filename ->
-      Printf.eprintf "Error: could not find %s in upper directories\n%!"
-        filename;
-      exit 2
+(* returns run_dir and project_config *)
+let find_project_config () =
+  match Misc.find_file Autofonce_config.Globals.project_config_build with
+  | exception Not_found ->
+      begin
+        match Misc.find_file Autofonce_config.Globals.project_config_source with
+        | exception Not_found ->
+            Printf.eprintf "Error: files %S or %S not found in top dirs\n%!"
+              Autofonce_config.Globals.project_config_build
+              Autofonce_config.Globals.project_config_source ;
+            Printf.eprintf
+              "  Use `autofonce init` to create a file %S.\n"
+              Autofonce_config.Globals.project_config_build ;
+            exit 2
+        | file ->
+            let p = Autofonce_config.Project_config.from_file file in
+            p.project_build_dir, p
+      end
+  | file ->
+      let p = Autofonce_config.Project_config.from_file file in
+      Filename.dirname file, p
 
-let exec c =
+let find () =
+
+  begin
+    if not ( Sys.file_exists ( Sys.getcwd () )) then
+      Misc.error "Current directory does not exist anymore. Move back up.\n%!";
+  end ;
+
+  begin
+    try
+      let file = Misc.find_file "autofonce.env" in
+      Misc.error "File %S found. This file is deprecated, remove it and run `autofonce init`" file
+    with Not_found -> ()
+  end;
+
+  let run_dir, p = find_project_config () in
+  Printf.eprintf "Project description loaded from %s\n%!" p.project_file;
+  let tc =
+    match !Globals.testsuite with
+    | None ->
+        begin
+          match p.project_testsuites with
+          | [] -> Misc.error
+                    "Project does not define any testsuite in %s !\n"
+                    p.project_file
+          | tc :: _ -> tc
+        end
+    | Some testsuite ->
+        let rec iter testsuites =
+          match testsuites with
+          | [] ->
+              Misc.error "Testsuite %S not found among testsuites in %s\n%!"
+                testsuite p.project_file
+          | tc :: testsuites ->
+              if tc.config_name = testsuite then tc else
+                iter testsuites
+        in
+        iter p.project_testsuites
+  in
+  let testsuite_file = p.project_source_dir // tc.config_file in
+  if not (Sys.file_exists testsuite_file) then
+    Misc.error "Could not find testsuite file %S in project" testsuite_file ;
+  let path = List.map (fun path ->
+      p.project_source_dir // path
+    ) tc.config_path in
+  Printf.eprintf "Loading tests from file %S\n%!" testsuite_file ;
+  let suite = Parser.read ~path testsuite_file in
+  run_dir, p, tc, suite
+
+let exec rundir p tc suite =
   Misc.set_signal_handle Sys.sigint (fun _ -> exit 2);
   Misc.set_signal_handle Sys.sigterm (fun _ -> exit 2);
 
-  let state = Runner_common.create_state c in
+  let state = Runner_common.create_state rundir p tc suite in
   (* we are now in state_run_dir, i.e. before _autofonce/ *)
 
+  let tests_dir = Autofonce_config.Globals.tests_dir in
   if !clean_tests_dir && Sys.file_exists tests_dir then
-    Misc.remove_rec tests_dir;
+    Misc.remove_rec tests_dir ;
+
   if not ( Sys.file_exists tests_dir ) then begin
-    Printf.eprintf "Creating testing directory %s\n%!"
+    Runner_common.output "Creating testing directory %s\n%!"
       (Sys.getcwd () // tests_dir);
     Unix.mkdir tests_dir 0o755;
   end else begin
-    Printf.eprintf "Using testing directory %s\n%!"
+    Runner_common.output "Using testing directory %s\n%!"
       (Sys.getcwd () // tests_dir);
   end;
-  Runner_common.output "Executing testsuite in %s"
-    (state.state_run_dir // tests_dir);
 
   if !max_jobs = 1 then
     Runner_seq.exec_testsuite state
@@ -90,7 +152,7 @@ let exec c =
         Printf.printf "\n%!";
   end;
   let buffer = Buffer.contents state.state_buffer in
-  let buffer_file = tests_dir // "results.log" in
+  let buffer_file = Sys.getcwd () // tests_dir // "results.log" in
   EzFile.write_file buffer_file buffer;
   Printf.eprintf "File %S created with failure results\n%!" buffer_file;
   if !print_all then
@@ -115,7 +177,7 @@ let print c =
 
 let args = [
 
-  [ "t" ; "testsuite" ], Arg.String (fun s -> testsuite := s),
+  [ "t" ; "testsuite" ], Arg.String (fun s -> testsuite := Some s),
   EZCMD.info
     ~env:(EZCMD.env "AUTOFONCE_TESTSUITE")
     ~docv:"FILE" "File to lookup (default to 'tests/testsuite.at')";

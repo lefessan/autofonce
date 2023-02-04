@@ -99,7 +99,7 @@ let args = [
 
   [ "N"; "not" ], Arg.String (fun s ->
       tests_nokeywords := !tests_nokeywords @
-                        EzString.split_simplify s ' ';
+                          EzString.split_simplify s ' ';
       clean_tests_dir := false
     ),
   EZCMD.info ~docv:"KEYWORD" "Skip tests matching KEYWORD";
@@ -111,13 +111,16 @@ let args = [
   EZCMD.info "Run only previously failed tests (among selected tests)";
 
   [], Arg.Anons (fun list ->
-      List.iter (fun s ->
-          match int_of_string s with
-          | id -> tests_ids := !tests_ids @ [id]
-          | exception _ ->
-              tests_keywords := !tests_keywords @ [s]
-        ) list ;
-      clean_tests_dir := false;
+      match list with
+      | [] -> ()
+      | _ ->
+          List.iter (fun s ->
+              match int_of_string s with
+              | id -> tests_ids := !tests_ids @ [id]
+              | exception _ ->
+                  tests_keywords := !tests_keywords @ [s]
+            ) list ;
+          clean_tests_dir := false;
     ),
   EZCMD.info ~docv:"ID" "Exec ending at test $(docv)";
 

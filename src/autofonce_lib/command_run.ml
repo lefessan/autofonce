@@ -47,8 +47,8 @@ let cmd =
   EZCMD.sub
     "run"
     (fun () ->
-       let c = Testsuite.find () in
-       Testsuite.exec c
+       let (rundir, p, tc, suite) = Testsuite.find () in
+       Testsuite.exec rundir p tc suite
     )
     ~args
     ~doc: "Run testsuite of the current project"
