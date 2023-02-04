@@ -59,7 +59,7 @@ jobs:
 
       - run: opam pin add . -y --no-action
 
-      - run: opam depext -y autofonce autofonce_core autofonce_lib autofonce_m4 autofonce_share
+      - run: opam depext -y autofonce autofonce_core autofonce_lib autofonce_m4 autofonce_share autofonce_patch autofonce_config autofonce_misc
 #        if: steps.cache-opam.outputs.cache-hit != 'true'
 
       - run: opam install -y opam/*.opam --deps-only --with-test

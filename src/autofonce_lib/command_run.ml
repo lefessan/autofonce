@@ -3,8 +3,10 @@
 (*  Copyright (c) 2023 OCamlPro SAS                                       *)
 (*                                                                        *)
 (*  All rights reserved.                                                  *)
-(*  This file is distributed under the terms of the                       *)
-(*  OCAMLPRO-NON-COMMERCIAL license.                                      *)
+(*  This file is distributed under the terms of the GNU General Public    *)
+(*  License version 3.0, as described in the LICENSE.md file in the root  *)
+(*  directory of this source tree.                                        *)
+(*                                                                        *)
 (*                                                                        *)
 (**************************************************************************)
 
@@ -32,7 +34,7 @@ let cmd =
       EZCMD.info "Keep all directories of tests";
 
       [ "no-clean" ], Arg.Clear clean_tests_dir,
-      EZCMD.info "Do not clean _autotest/ dir on startup";
+      EZCMD.info "Do not clean _autofonce/ dir on startup";
 
       [ "j1" ], Arg.Unit (fun () -> max_jobs := 1),
       EZCMD.info "Use Sequential scheduling of tests";
@@ -45,7 +47,7 @@ let cmd =
   EZCMD.sub
     "run"
     (fun () ->
-       let c = Autofonce_core.Parser.find !Globals.testsuite in
+       let c = Testsuite.find () in
        Testsuite.exec c
     )
     ~args
@@ -59,9 +61,9 @@ let cmd =
         `Pre {|\$ autofonce init --help|} ;
         `P {|$(b,tests/testsuite.at) contains the descriptions of the tests, as expected by the GNU Autoconf testsuite. Check the following command for more information:|} ;
         `Pre {|\$ autofonce list --help|} ;
-        `P {|To run tests, $(b,autofonce) will create a directory $(b,_autotest/) in the directory containing the file $(b,autofonce.env).|} ;
-        `P {|Every test is run independantly in a test directory with its number in the $(b,_autotest/) directory. The test directory is removed if the test does not fail, or if it was expected to fail. Use the $(b,--keep-more) argument to keep directories of tests that have been skipped or were expected to fail. Use the $(b,--keep-all) argument to keep all directories.|} ;
+        `P {|To run tests, $(b,autofonce) will create a directory $(b,_autofonce/) in the directory containing the file $(b,autofonce.env).|} ;
+        `P {|Every test is run independantly in a test directory with its number in the $(b,_autofonce/) directory. The test directory is removed if the test does not fail, or if it was expected to fail. Use the $(b,--keep-more) argument to keep directories of tests that have been skipped or were expected to fail. Use the $(b,--keep-all) argument to keep all directories.|} ;
         `P {|You can select which tests to run, by selecting a range of tests using $(b,--after TEST) or $(b,--before TEST), by selecting individual tests identifiers using $(b,--id NUM) or by selecting keywords using $(b,--keyword KEYWORD).|} ;
-        `P {|$(b,autofonce) will only display failed tests on its output. You can use the argument $(b,--print-all) to display all tests that were not OK, or just read the generated file $(b,_autotests/results.log).|};
+        `P {|$(b,autofonce) will only display failed tests on its output. You can use the argument $(b,--print-all) to display all tests that were not OK, or just read the generated file $(b,_autofonce/results.log).|};
       ];
     ]

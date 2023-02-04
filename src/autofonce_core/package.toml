@@ -52,6 +52,7 @@ ez_cmdliner = "0.2"
 ANSITerminal = "0.8"
 autofonce_m4 = "version"
 autofonce_share = "version"
+autofonce_misc = "version"
 
 # package tools dependencies
 [tools]

@@ -2,7 +2,7 @@
 # Do not modify, or add to the `skip` field of `drom.toml`.
 opam-version: "2.0"
 name: "autofonce_lib"
-version: "0.4"
+version: "0.5"
 license: "GPL-3.0-only"
 synopsis: "autofonce: modern runner for GNU Autoconf Testsuites"
 description: """\
@@ -47,8 +47,10 @@ depends: [
   "ez_file" {>= "0.3"}
   "ez_cmdliner" {>= "0.4"}
   "autofonce_share" {= version}
+  "autofonce_patch" {= version}
   "autofonce_m4" {= version}
   "autofonce_core" {= version}
+  "autofonce_config" {= version}
   "ANSITerminal" {>= "0.8"}
   "ppx_inline_test" {with-test}
   "ppx_expect" {with-test}

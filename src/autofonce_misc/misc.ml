@@ -3,16 +3,17 @@
 (*  Copyright (c) 2023 OCamlPro SAS                                       *)
 (*                                                                        *)
 (*  All rights reserved.                                                  *)
-(*  This file is distributed under the terms of the                       *)
-(*  OCAMLPRO-NON-COMMERCIAL license.                                      *)
+(*  This file is distributed under the terms of the GNU General Public    *)
+(*  License version 3.0, as described in the LICENSE.md file in the root  *)
+(*  directory of this source tree.                                        *)
+(*                                                                        *)
 (*                                                                        *)
 (**************************************************************************)
 
-open Autofonce_m4
-open M4Types
-
 open Ez_file.V1
 open EzFile.OP
+
+exception Error of string
 
 let _TODO_ loc s =
   Printf.kprintf failwith "Feature not implemented %s at %s" s loc
@@ -21,14 +22,7 @@ let set_signal_handle signal handle =
   ignore (Sys.set_signal signal (Sys.Signal_handle (fun _ -> handle ())))
 
 let error fmt =
-  Printf.kprintf (fun s -> raise (Types.Error s)) fmt
-
-let macro_error macro fmt =
-  Printf.kprintf (fun s ->
-      error "Error %s at %s, in macro %s" s
-        (M4Printer.string_of_location macro.loc)
-        (M4Printer.string_of_macro macro)
-    ) fmt
+  Printf.kprintf (fun s -> raise (Error s)) fmt
 
 let command fmt =
   Printf.kprintf (fun cmd ->

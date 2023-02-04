@@ -3,18 +3,22 @@
 (*  Copyright (c) 2023 OCamlPro SAS                                       *)
 (*                                                                        *)
 (*  All rights reserved.                                                  *)
-(*  This file is distributed under the terms of the                       *)
-(*  OCAMLPRO-NON-COMMERCIAL license.                                      *)
+(*  This file is distributed under the terms of the GNU General Public    *)
+(*  License version 3.0, as described in the LICENSE.md file in the root  *)
+(*  directory of this source tree.                                        *)
+(*                                                                        *)
 (*                                                                        *)
 (**************************************************************************)
 
 open EzCompat
 
-open Autofonce_core
 open Types
 open Globals (* toplevel references *)
+open Ez_file.V1
+open EzFile.OP
 
-let select_tests select_test c =
+let select_tests ?state select_test suite =
+  ignore state;
   let all_tests =
     !tests_ids = [] && !tests_keywords = []
   in
@@ -46,8 +50,20 @@ let select_tests select_test c =
             t.test_keywords
         )
       then
-        select_test t)
-    c.suite_tests
+        if !only_failed then
+          (* only_failed option should only be available
+                                   with state *)
+          match state with
+          | None -> assert false
+          | Some state ->
+              let test_dir = Runner_common.test_dir t in
+              let test_dir = state.state_run_dir // test_dir in
+              if Sys.file_exists test_dir then
+                select_test t
+              else ()
+        else
+          select_test t)
+    suite.suite_tests
 
 open Ezcmd.V2
 open EZCMD.TYPES
@@ -87,6 +103,12 @@ let args = [
       clean_tests_dir := false
     ),
   EZCMD.info ~docv:"KEYWORD" "Skip tests matching KEYWORD";
+
+  [ "failed" ], Arg.Unit (fun () ->
+      only_failed := true ;
+      clean_tests_dir := false
+    ),
+  EZCMD.info "Run only previously failed tests (among selected tests)";
 
   [], Arg.Anons (fun list ->
       List.iter (fun s ->

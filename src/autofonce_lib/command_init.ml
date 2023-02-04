@@ -3,16 +3,20 @@
 (*  Copyright (c) 2023 OCamlPro SAS                                       *)
 (*                                                                        *)
 (*  All rights reserved.                                                  *)
-(*  This file is distributed under the terms of the                       *)
-(*  OCAMLPRO-NON-COMMERCIAL license.                                      *)
+(*  This file is distributed under the terms of the GNU General Public    *)
+(*  License version 3.0, as described in the LICENSE.md file in the root  *)
+(*  directory of this source tree.                                        *)
+(*                                                                        *)
 (*                                                                        *)
 (**************************************************************************)
 
 open Ezcmd.V2
 open EZCMD.TYPES
 open Ez_file.V1
+open EzFile.OP
 
-open Autofonce_core
+module Misc = Autofonce_misc.Misc
+
 open Globals (* toplevel references *)
 
 let list_known_project () =
@@ -22,6 +26,30 @@ let list_known_project () =
         Printf.printf "* %S\n%!" (Filename.chop_suffix file ".env")
     ) Autofonce_share.Tree.file_list;
   Printf.printf "%!";
+  exit 0
+
+let create_project_config () =
+  let open Autofonce_config.Project_config in
+  let project_topdir = Sys.getcwd () in
+  let project_file = ".autofonce" in
+  let filename = project_topdir // project_file in
+  let p =
+    if Sys.file_exists filename then
+      Autofonce_config.Project_config.read filename
+    else
+      {
+        project_topdir ;
+        project_file ;
+        project_testsuites = [ {
+            config_name = "testsuite" ;
+            config_file = "tests/testsuite.at" ;
+            config_path = [ "tests/testsuite.src" ] ;
+          } ] ;
+        project_env = None ;
+      }
+  in
+  Autofonce_config.Project_config.write p ;
+  Printf.eprintf "File %S updated\n%!" filename ;
   exit 0
 
 let cmd =
@@ -37,6 +65,9 @@ let cmd =
 
       [ "l"; "list-known" ], Arg.Unit list_known_project,
       EZCMD.info "List known projects with environment files";
+
+      [ "project-config" ], Arg.Unit create_project_config,
+      EZCMD.info "Create a project config template .autofonce" ;
 
     ]
   in
@@ -102,7 +133,7 @@ let cmd =
         `P {|To run tests with $(b,autofonce), tests typically require
 some environment variables to be set. For that, $(b,autofonce) uses a
 file named $(b,autofonce.env) in the project. $(b,autofonce) will also
-use this file to create a directory $(b,_autotest/) where tests are
+use this file to create a directory $(b,_autofonce/) where tests are
 run and results are kept.|} ;
         `P {|This command can be used to create the file $(b,autofonce.env)
 in the current directory. By default, the file is empty, and you will

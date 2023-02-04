@@ -3,8 +3,10 @@
 (*  Copyright (c) 2023 OCamlPro SAS                                       *)
 (*                                                                        *)
 (*  All rights reserved.                                                  *)
-(*  This file is distributed under the terms of the                       *)
-(*  OCAMLPRO-NON-COMMERCIAL license.                                      *)
+(*  This file is distributed under the terms of the GNU General Public    *)
+(*  License version 3.0, as described in the LICENSE.md file in the root  *)
+(*  directory of this source tree.                                        *)
+(*                                                                        *)
 (*                                                                        *)
 (**************************************************************************)
 
@@ -12,19 +14,8 @@ open Ezcmd.V2
 open EZCMD.TYPES
 open Ez_file.V1
 
-open Autofonce_core
-
-let m4_escape s =
-  let b = Buffer.create (String.length s) in
-  Buffer.add_char b '[';
-  for i = 0 to String.length s - 1 do
-    match s.[i] with
-    | '[' -> Buffer.add_string b "@<:@"
-    | ']' -> Buffer.add_string b "@:>@"
-    | c -> Buffer.add_char b c
-  done;
-  Buffer.add_char b ']';
-  Buffer.contents b
+module Misc = Autofonce_misc.Misc
+module Parser = Autofonce_core.Parser
 
 let cmd =
   let files = ref [] in
@@ -86,14 +77,14 @@ let cmd =
        let b = Buffer.create 10000 in
 
        Printf.bprintf b "AT_SETUP(%s)\n"
-         (m4_escape !name);
+         (Parser.m4_escape !name);
 
        begin
          match !keywords with
          | [] -> ()
          | list ->
              Printf.bprintf b "\nAT_KEYWORDS(%s)\n"
-               (m4_escape (String.concat " " list))
+               (Parser.m4_escape (String.concat " " list))
        end;
 
        begin
@@ -103,7 +94,7 @@ let cmd =
              Printf.bprintf b "\n";
              List.iter (fun (file, content) ->
                  Printf.bprintf b "AT_DATA(%s,%s)\n"
-                   (m4_escape file) (m4_escape content)
+                   (Parser.m4_escape file) (Parser.m4_escape content)
                ) files;
        end;
 
@@ -113,15 +104,16 @@ let cmd =
          | files ->
              Printf.bprintf b "\n";
              List.iter (fun file ->
-                 Printf.bprintf b "AT_CAPTURE_FILE(%s)\n" (m4_escape file)
+                 Printf.bprintf b "AT_CAPTURE_FILE(%s)\n"
+                   (Parser.m4_escape file)
                ) files;
        end;
 
        Printf.bprintf b "\nAT_CHECK(%s, [%d], %s, %s)\n"
-         (m4_escape @@ String.concat " " command)
+         (Parser.m4_escape @@ String.concat " " command)
          retcode
-         (m4_escape stdout_content)
-         (m4_escape stderr_content);
+         (Parser.m4_escape stdout_content)
+         (Parser.m4_escape stderr_content);
 
        Printf.bprintf b "\nAT_CLEANUP\n";
 

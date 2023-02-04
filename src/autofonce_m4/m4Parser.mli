@@ -3,8 +3,10 @@
 (*  Copyright (c) 2023 OCamlPro SAS                                       *)
 (*                                                                        *)
 (*  All rights reserved.                                                  *)
-(*  This file is distributed under the terms of the                       *)
-(*  OCAMLPRO-NON-COMMERCIAL license.                                      *)
+(*  This file is distributed under the terms of the GNU General Public    *)
+(*  License version 3.0, as described in the LICENSE.md file in the root  *)
+(*  directory of this source tree.                                        *)
+(*                                                                        *)
 (*                                                                        *)
 (**************************************************************************)
 
@@ -19,3 +21,6 @@ val unescape : ?last:bool -> string -> string
    argument. Must not be done if argument is already escaped
    (typically in run-if-pass/run-if-fail) *)
 val to_string : M4Types.arg -> string
+
+val macro_error :
+  M4Types.statement -> ('a, unit, string, 'b) format4 -> 'a

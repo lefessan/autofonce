@@ -3,8 +3,10 @@
 (*  Copyright (c) 2023 OCamlPro SAS                                       *)
 (*                                                                        *)
 (*  All rights reserved.                                                  *)
-(*  This file is distributed under the terms of the                       *)
-(*  OCAMLPRO-NON-COMMERCIAL license.                                      *)
+(*  This file is distributed under the terms of the GNU General Public    *)
+(*  License version 3.0, as described in the LICENSE.md file in the root  *)
+(*  directory of this source tree.                                        *)
+(*                                                                        *)
 (*                                                                        *)
 (**************************************************************************)
 
@@ -74,11 +76,11 @@ let exec_test state t =
   ()
 
 let exec_testsuite state =
-  let c = state.state_suite in
-  Filter.select_tests (fun t ->
+  let suite = state.state_suite in
+  Filter.select_tests ~state (fun t ->
       if t.test_banner <> state.state_banner then begin
         Runner_common.output "%s" t.test_banner;
         state.state_banner <- t.test_banner
       end;
       exec_test state t;
-    ) c
+    ) suite

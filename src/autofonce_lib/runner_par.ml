@@ -3,8 +3,10 @@
 (*  Copyright (c) 2023 OCamlPro SAS                                       *)
 (*                                                                        *)
 (*  All rights reserved.                                                  *)
-(*  This file is distributed under the terms of the                       *)
-(*  OCAMLPRO-NON-COMMERCIAL license.                                      *)
+(*  This file is distributed under the terms of the GNU General Public    *)
+(*  License version 3.0, as described in the LICENSE.md file in the root  *)
+(*  directory of this source tree.                                        *)
+(*                                                                        *)
 (*                                                                        *)
 (**************************************************************************)
 
@@ -32,24 +34,24 @@ let update_status s =
   Buffer.clear b;
   let n = IntMap.cardinal s.running_tests in
   if n > 0 then begin
-    Printf.bprintf b " [";
+    Printf.bprintf b "[";
     match IntMap.min_elt s.running_tests with
     | None -> assert false
     | Some (_, r) ->
         let ter = r.running_test in
         let t = ter.tester_test in
-        Printf.bprintf b " %d %-38s"
+        Printf.bprintf b "%d %-32s"
           t.test_id
           (let len = String.length t.test_name in
-           if len > 38 then
-             (String.sub t.test_name 0 36 ^ "..")
+           if len > 32 then
+             (String.sub t.test_name 0 30 ^ "..")
            else
              t.test_name
           );
         if n > 1 then
-          Printf.bprintf b " +%d ]" (n-1)
+          Printf.bprintf b " +%d]" (n-1)
         else
-          Buffer.add_string b " ]"
+          Buffer.add_string b "]"
   end;
   s.state.state_status <- Buffer.contents b
 
@@ -131,6 +133,7 @@ let run s =
       iter ()
     else
     if s.current_jobs > 0 then
+      let () = Runner_common.print_status s.state in
       let pid, status = Call.wait_pids () in
       if !Globals.verbose > 1 then Printf.eprintf "JOB %d finished\n%!" pid;
       let ret_code =
@@ -162,6 +165,6 @@ let exec_testsuite state =
   let select_test t =
     Queue.add t s.test_fifo;
   in
-  Filter.select_tests select_test c;
+  Filter.select_tests ~state select_test c;
   state.state_ntests <- Queue.length s.test_fifo ;
   run s

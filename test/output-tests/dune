@@ -19,7 +19,7 @@
 
 (executable
  (name test2)
- (libraries autofonce_core autofonce_lib autofonce_m4 autofonce_share) ; add your own library here
+ (libraries autofonce_core autofonce_lib autofonce_m4 autofonce_share autofonce_patch autofonce_config autofonce_misc) ; add your own library here
  )
 
 (alias
