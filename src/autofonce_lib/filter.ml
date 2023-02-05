@@ -77,7 +77,7 @@ let args = [
     ),
   EZCMD.info ~docv:"KEYWORD" "Run only tests matching KEYWORD";
 
-  [ "ids" ], Arg.String (fun ids ->
+  [ "i"; "ids" ], Arg.String (fun ids ->
       tests_ids := !tests_ids @
                    (List.map int_of_string
                       (EzString.split_simplify ids ' '));

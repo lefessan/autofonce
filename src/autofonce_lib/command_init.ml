@@ -29,8 +29,8 @@ open Types
 let list_known_project () =
   Printf.printf "Known projects with environment files:\n";
   List.iter (fun file ->
-      if Filename.check_suffix file ".env" then
-        Printf.printf "* %S\n%!" (Filename.chop_suffix file ".env")
+      if Filename.check_suffix file ".toml" then
+        Printf.printf "* %S\n%!" (Filename.chop_suffix file ".toml")
     ) Autofonce_share.Tree.file_list;
   Printf.printf "%!";
   exit 0
@@ -158,15 +158,13 @@ let cmd =
       `Blocks [
         `P {|To run tests with $(b,autofonce), tests typically require
 some environment variables to be set. For that, $(b,autofonce) uses a
-file named $(b,autofonce.env) in the project. $(b,autofonce) will also
-use this file to create a directory $(b,_autofonce/) where tests are
-run and results are kept.|} ;
-        `P {|This command can be used to create the file $(b,autofonce.env)
-in the current directory. By default, the file is empty, and you will
-need to fill it from inspecting files in the project, such as $(b,atconfig)
-and $(b,atlocal), typically used by GNU Autoconf testsuites.|} ;
+file named $(b,autofonce.toml) in the project (or $(b,.autofonce)).
+$(b,autofonce) will also use this file to create a directory $(b,_autofonce/)
+where tests are run and results are kept.|} ;
+        `P {|This command can be used to create the file $(b,autofonce.toml)
+in the current directory. |} ;
         `P {|Yet, in some cases, $(b,autofonce) knows the project in which
-you are and can provide you will an example of $(b,autofonce.env) for that
+you are and can provide you with an example of $(b,autofonce.toml) for that
 particular project.|} ;
         `P {|You can use the following command to list known projects:|} ;
         `Pre {|\$ autofonce init --list|};

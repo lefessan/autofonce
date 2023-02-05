@@ -180,6 +180,6 @@ let args = [
   [ "t" ; "testsuite" ], Arg.String (fun s -> testsuite := Some s),
   EZCMD.info
     ~env:(EZCMD.env "AUTOFONCE_TESTSUITE")
-    ~docv:"FILE" "File to lookup (default to 'tests/testsuite.at')";
+    ~docv:"TESTSUITE" "Name of the testsuite to run (as specified in 'autofonce.toml')";
 
 ]
