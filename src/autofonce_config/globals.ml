@@ -10,12 +10,12 @@
 (*                                                                        *)
 (**************************************************************************)
 
-type run_config = {
-  run_topdir : string ;
-  run_file : string ;
-  run_build_dir : string option ;
-  run_env : string option ;
-}
+(* files looked up for project config *)
+let project_config_source = ".autofonce"
+let project_config_build = "autofonce.toml"
 
-val read : string -> run_config
-val write : run_config -> unit
+(* toplevel dir created to run tests *)
+let tests_dir = "_autofonce"
+
+(* name of env script created in every test dir *)
+let env_autofonce_sh = "env_autofonce.sh"

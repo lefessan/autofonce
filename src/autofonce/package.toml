@@ -63,8 +63,19 @@ autofonce_lib = "version"
 #  gen-opam = "some" | "all" 
 [fields]
 dune-stanzas = "(flags (:standard (:include linking.sexp)))"
-dune-trailer = """(rule
+dune-trailer = """
+
+(rule
   (targets linking.sexp)
+  (enabled_if (<> %{ocaml-config:system} mingw64))
+  (deps (file linking_flags.sh))
   (action  (with-stdout-to %{targets}
-    (run ./linking_flags.sh linking.sexp %{env:LINKING_MODE=dynamic} %{ocaml-config:system}))))
+    (run bash linking_flags.sh linking.sexp %{env:LINKING_MODE=dynamic} %{ocaml-config:system}))))
+
+(rule
+  (targets linking.sexp)
+  (enabled_if (= %{ocaml-config:system} mingw64))
+  (deps (file linking_flags.sh))
+  (action  (with-stdout-to %{targets}
+    (run bash -c "echo '()' > linking.sexp"))))
 """

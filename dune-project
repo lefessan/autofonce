@@ -5,7 +5,7 @@
 (name autofonce)
 (allow_approximate_merlin)
 (generate_opam_files false)
-(version 0.5)
+(version 0.6)
 (formatting (enabled_for ocaml reason))
 
 (package

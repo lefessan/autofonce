@@ -42,25 +42,22 @@ let commands = [
 ]
 
 let main () =
+
+  begin
+    try ignore ( Sys.getcwd () )
+    with _ ->
+      Printf.eprintf "Current directory does not exist anymore. Move back up.\n%!";
+      exit 2
+  end ;
   Printexc.record_backtrace true;
 
   let common_args = [
   ] in
 
-  try
-    MAIN.main
-      ~on_error: (fun () -> () )
-      ~on_exit: (fun () -> () )
-      ~print_config: (fun () -> () )
-      (* ~argv *)
-      commands
-      ~common_args;
-  with
-  | PROGRAM.Error s ->
-      Printf.eprintf "Error: %s\n%!" s;
-      exit 2
-  | exn ->
-      let bt = Printexc.get_backtrace () in
-      let error = Printexc.to_string exn in
-      Printf.eprintf "fatal exception %s\n%s\n%!" error bt;
-      exit 2
+  MAIN.main
+    ~on_error: (fun () -> () )
+    ~on_exit: (fun () -> () )
+    ~print_config: (fun () -> () )
+    (* ~argv *)
+    commands
+    ~common_args;

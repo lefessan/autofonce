@@ -47,8 +47,8 @@ let cmd =
   EZCMD.sub
     "run"
     (fun () ->
-       let c = Testsuite.find () in
-       Testsuite.exec c
+       let (rundir, p, tc, suite) = Testsuite.find () in
+       Testsuite.exec rundir p tc suite
     )
     ~args
     ~doc: "Run testsuite of the current project"
@@ -56,10 +56,10 @@ let cmd =
       `S "DESCRIPTION";
       `Blocks [
         `P {|Run the testsuite.|} ;
-        `P {|$(b,autofonce) expects the existence of two files: $(b,autofonce.env) and $(b,tests/testsuite.at).|} ;
-        `P {|$(b,autofonce.env) is required to configure the tests that will be run. Check the following command for more information:|} ;
+        `P {|$(b,autofonce) expects the existence of either $(b,autofonce.toml) or $(b,.autofonce).|} ;
+        `P {|$(b,autofonce.toml) is required to configure the tests that will be run, depending on the project. Check the following command for more information:|} ;
         `Pre {|\$ autofonce init --help|} ;
-        `P {|$(b,tests/testsuite.at) contains the descriptions of the tests, as expected by the GNU Autoconf testsuite. Check the following command for more information:|} ;
+        `P {|Before running the tests, you may want to list the test in the current testsuite with:|} ;
         `Pre {|\$ autofonce list --help|} ;
         `P {|To run tests, $(b,autofonce) will create a directory $(b,_autofonce/) in the directory containing the file $(b,autofonce.env).|} ;
         `P {|Every test is run independantly in a test directory with its number in the $(b,_autofonce/) directory. The test directory is removed if the test does not fail, or if it was expected to fail. Use the $(b,--keep-more) argument to keep directories of tests that have been skipped or were expected to fail. Use the $(b,--keep-all) argument to keep all directories.|} ;

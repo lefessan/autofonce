@@ -26,10 +26,10 @@ let diff = Patch_lines.Diff { exclude = [ "^# promoted on .*" ]}
 let action = ref diff
 let comment = ref true
 
-let promote suite =
+let promote rundir p tc suite =
   only_failed := true ;
   Patch_lines.reset ();
-  let state = Runner_common.create_state suite in
+  let state = Runner_common.create_state rundir p tc suite in
   Unix.chdir state.state_run_dir ;
   let promote_test t =
     let file = t.test_loc.file in
@@ -211,8 +211,8 @@ let cmd =
   EZCMD.sub
     "promote"
     (fun () ->
-       let suite = Testsuite.find () in
-       promote suite
+       let rundir, p, tc, suite = Testsuite.find () in
+       promote rundir p tc suite
     )
     ~args
     ~doc: "Promote tests results as expected results"

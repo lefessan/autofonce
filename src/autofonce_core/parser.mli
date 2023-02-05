@@ -10,13 +10,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
-exception TestsuiteNotFound of string
-
 val name_of_loc : Types.location -> string
 val m4_escape : string -> string
 
 (* Read filename to get the corresponding testsuite *)
-val read : string -> Types.suite
-
-(* Try to find filename in the upper directories, and read the testsuite *)
-val find : string -> Types.suite
+val read : ?path:string list -> string -> Types.suite

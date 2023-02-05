@@ -19,12 +19,13 @@ open Globals (* toplevel references *)
 
 module Parser = Autofonce_core.Parser
 module Misc = Autofonce_misc.Misc
+module Project_config = Autofonce_config.Project_config
 
 let buffer_test ter fmt =
   let t = ter.tester_test in
   let state = ter.tester_state in
   Printf.kprintf (fun s ->
-      Printf.bprintf state.state_buffer "%04d %-50s %s\n"
+      Printf.bprintf state.state_buffer "%04d %-45s %s\n"
         t.test_id t.test_name s) fmt
 
 let commented s =
@@ -39,7 +40,7 @@ let output fmt =
 let output_test ter fmt =
   let t = ter.tester_test in
   Printf.kprintf (fun s ->
-      output "%04d %-50s %s"  t.test_id t.test_name s) fmt
+      output "%04d %-45s %s"  t.test_id t.test_name s) fmt
 
 let print_ntests n list =
   List.iteri (fun i ter ->
@@ -49,7 +50,7 @@ let print_ntests n list =
     ) list
 
 let test_dir t =
-  tests_dir // Printf.sprintf "%04d" t.test_id
+  Autofonce_config.Globals.tests_dir // Printf.sprintf "%04d" t.test_id
 let tester_dir ter = test_dir ter.tester_test
 
 let test_is_ok ter =
@@ -132,13 +133,25 @@ let start_test state t =
   else
     Unix.mkdir test_dir 0o755;
 
-  EzFile.write_file ( test_dir // env_autofonce_sh ) @@
+  EzFile.write_file ( test_dir // Autofonce_config.Globals.env_autofonce_sh ) @@
   Printf.sprintf {|#!/bin/sh
-AUTOFONCE_SUITE_DIR="%s"
-AUTOFONCE_SUITE_FILE="%s"
+# name of testsuite in 'autofonce.toml'
+AUTOFONCE_TESTSUITE="%s"
+# location of directory containing _autofonce/ dir
+AUTOFONCE_RUN_DIR="%s"
+# project source directory
+AUTOFONCE_SOURCE_DIR="%s"
+# build directory of project
+AUTOFONCE_BUILD_DIR="%s"
+
 %s
-|} c.suite_dir c.suite_file state.state_env;
-  Unix.chmod ( test_dir // env_autofonce_sh ) 0o755;
+|}
+    state.state_config.config_name
+    state.state_run_dir
+    state.state_project.project_source_dir
+    state.state_project.project_build_dir
+    state.state_config.config_env.env_content;
+  Unix.chmod ( test_dir // Autofonce_config.Globals.env_autofonce_sh ) 0o755;
   ter
 
 let check_dir check = test_dir check.check_test
@@ -154,15 +167,15 @@ let start_check ter check =
   let check_content =
     Printf.sprintf {|#!/bin/sh
 
-# %s
+# create test env
 . ./%s
 
+# check to perform
 %s
 
 %s
 |}
-      autotest_env
-      env_autofonce_sh
+      Autofonce_config.Globals.env_autofonce_sh
       (commented (string_of_check check))
       check.check_command
   in
@@ -224,34 +237,12 @@ let check_failures cer retcode =
   @
   compare check.check_stderr check_stderr "stderr"
 
-let create_state c =
-
-  let state_run_dir, state_env =
-    try
-      let autotest_file = Misc.find_file autotest_env in
-      let autotest_dir = Filename.dirname autotest_file in
-      Unix.chdir autotest_dir;
-      let autotest_env = EzFile.read_file autotest_env in
-      ( autotest_dir, autotest_env )
-    with
-    | Not_found ->
-        Printf.eprintf "Error: file %S not found in top dirs\n%!" autotest_env;
-        Printf.eprintf
-          "This project-specific file is used to configure the tests, and\n";
-        Printf.eprintf
-          " tell autofonce where to create the _autofonce/ directory to run\n";
-        Printf.eprintf
-          " tests.\n";
-        Printf.eprintf
-          "Use `autofonce init` to automatically create it if you think\n";
-        Printf.eprintf
-          " that this project is known by `autofonce`.\n";
-        exit 2
-  in
-
-  { state_suite = c ;
+let create_state state_run_dir p tc suite =
+  Unix.chdir state_run_dir;
+  { state_suite = suite ;
+    state_config = tc ;
+    state_project = p ;
     state_run_dir ;
-    state_env ;
     state_status = "";
     state_banner = "" ;
     state_ntests_ran = 0 ;
@@ -260,6 +251,6 @@ let create_state c =
     state_tests_skipped = [] ;
     state_tests_failexpected = [] ;
     state_buffer = Buffer.create 10000;
-    state_ntests = c.suite_ntests ;
+    state_ntests = suite.suite_ntests ;
     state_nchecks = 0;
   }

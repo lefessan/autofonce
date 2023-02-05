@@ -19,6 +19,9 @@ Overview of sub-commands::
   new
     Create a new test by running a command
   
+  promote
+    Promote tests results as expected results
+  
   run
     Run testsuite of the current project
 
@@ -35,17 +38,15 @@ Initialize project to run the testsuite with autofonce
 
 To run tests with **autofonce**, tests typically require
 some environment variables to be set. For that, **autofonce** uses a
-file named **autofonce.env** in the project. **autofonce** will also
-use this file to create a directory **_autofonce/** where tests are
-run and results are kept.
+file named **autofonce.toml** in the project (or **.autofonce**).
+**autofonce** will also use this file to create a directory **_autofonce/**
+where tests are run and results are kept.
 
-This command can be used to create the file **autofonce.env**
-in the current directory. By default, the file is empty, and you will
-need to fill it from inspecting files in the project, such as **atconfig**
-and **atlocal**, typically used by GNU Autoconf testsuites.
+This command can be used to create the file **autofonce.toml**
+in the current directory. 
 
 Yet, in some cases, **autofonce** knows the project in which
-you are and can provide you will an example of **autofonce.env** for that
+you are and can provide you with an example of **autofonce.toml** for that
 particular project.
 
 You can use the following command to list known projects:
@@ -72,11 +73,11 @@ to provide the project name, as it is automatically detected.
 Where options are:
 
 
-* :code:`-f` or :code:`--force-update`   Force update of the environment file
+* :code:`-f` or :code:`--force-update`   Force creation/update if file already exists
 
 * :code:`-l` or :code:`--list-known`   List known projects with environment files
 
-* :code:`-p PROJECT` or :code:`--project PROJECT`   Use environment file from known project
+* :code:`-p PROJECT` or :code:`--project PROJECT`   Set project name to infer config
 
 
 autofonce list
@@ -107,11 +108,13 @@ Where options are:
 
 * :code:`--before ID`   Exec ending at test ID
 
-* :code:`--ids ID`   Run only test ID
+* :code:`--failed`   Run only previously failed tests (among selected tests)
+
+* :code:`-i ID` or :code:`--ids ID`   Run only test ID
 
 * :code:`-k KEYWORD` or :code:`--keywords KEYWORD`   Run only tests matching KEYWORD
 
-* :code:`-t FILE` or :code:`--testsuite FILE`   File to lookup (default to 'tests/testsuite.at')
+* :code:`-t TESTSUITE` or :code:`--testsuite TESTSUITE`   Name of the testsuite to run (as specified in 'autofonce.toml')
 
 
 autofonce new
@@ -148,6 +151,51 @@ Where options are:
 * :code:`-o FILE` or :code:`--output FILE`   Name of generated file
 
 
+autofonce promote
+~~~~~~~~~~~~~~~~~~~
+
+Promote tests results as expected results
+
+
+
+**DESCRIPTION**
+
+
+After an unsucessful testsuite run, use this command to promote the results of tests to expected status.
+
+**USAGE**
+::
+  
+  autofonce promote ID [OPTIONS]
+
+Where options are:
+
+
+* :code:`ID`   Exec ending at test ID
+
+* :code:`-N KEYWORD` or :code:`--not KEYWORD`   Skip tests matching KEYWORD
+
+* :code:`--after ID`   Exec starting at test ID
+
+* :code:`--apply`   Apply promotion (default is to diff)
+
+* :code:`--before ID`   Exec ending at test ID
+
+* :code:`--diff`   Diff promotion (default)
+
+* :code:`--failed`   Run only previously failed tests (among selected tests)
+
+* :code:`--fake .EXT`   Apply promotion to create new files with extension .EXT
+
+* :code:`-i ID` or :code:`--ids ID`   Run only test ID
+
+* :code:`-k KEYWORD` or :code:`--keywords KEYWORD`   Run only tests matching KEYWORD
+
+* :code:`--no-comment`   Do not add a comment with the promotion date
+
+* :code:`-t TESTSUITE` or :code:`--testsuite TESTSUITE`   Name of the testsuite to run (as specified in 'autofonce.toml')
+
+
 autofonce run
 ~~~~~~~~~~~~~~~
 
@@ -160,15 +208,15 @@ Run testsuite of the current project
 
 Run the testsuite.
 
-**autofonce** expects the existence of two files: **autofonce.env** and **tests/testsuite.at**.
+**autofonce** expects the existence of either **autofonce.toml** or **.autofonce**.
 
-**autofonce.env** is required to configure the tests that will be run. Check the following command for more information:
+**autofonce.toml** is required to configure the tests that will be run, depending on the project. Check the following command for more information:
 ::
 
   $ autofonce init --help
 
 
-**tests/testsuite.at** contains the descriptions of the tests, as expected by the GNU Autoconf testsuite. Check the following command for more information:
+Before running the tests, you may want to list the test in the current testsuite with:
 ::
 
   $ autofonce list --help
@@ -180,7 +228,7 @@ Every test is run independantly in a test directory with its number in the **_au
 
 You can select which tests to run, by selecting a range of tests using **--after TEST** or **--before TEST**, by selecting individual tests identifiers using **--id NUM** or by selecting keywords using **--keyword KEYWORD**.
 
-**autofonce** will only display failed tests on its output. You can use the argument **--print-all** to display all tests that were not OK, or just read the generated file **_autofonces/results.log**.
+**autofonce** will only display failed tests on its output. You can use the argument **--print-all** to display all tests that were not OK, or just read the generated file **_autofonce/results.log**.
 
 **USAGE**
 ::
@@ -202,7 +250,9 @@ Where options are:
 
 * :code:`-e` or :code:`--stop-on-failure`   Stop on first failure
 
-* :code:`--ids ID`   Run only test ID
+* :code:`--failed`   Run only previously failed tests (among selected tests)
+
+* :code:`-i ID` or :code:`--ids ID`   Run only test ID
 
 * :code:`-j NJOBS`   Set maximal parallelism
 
@@ -216,4 +266,4 @@ Where options are:
 
 * :code:`-s` or :code:`--keep-more`   Keep directories of skipped and expected failed
 
-* :code:`-t FILE` or :code:`--testsuite FILE`   File to lookup (default to 'tests/testsuite.at')
+* :code:`-t TESTSUITE` or :code:`--testsuite TESTSUITE`   Name of the testsuite to run (as specified in 'autofonce.toml')

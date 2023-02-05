@@ -103,3 +103,9 @@ jobs:
           BRANCH: gh-pages
           FOLDER: _drom/docs/
           CLEAN: true
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: autofonce-${{ matrix.os }}-${{ matrix.ocaml-compiler }}
+          path: _build/default/src/autofonce/main.exe
