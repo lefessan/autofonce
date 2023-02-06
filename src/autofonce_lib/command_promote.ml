@@ -23,7 +23,7 @@ open Globals
 
 (* TODO: check why the ignore pattern does not work *)
 let diff = Patch_lines.Diff { exclude = [ "^# promoted on .*" ]}
-let action = ref diff
+let todo = ref diff
 let comment = ref true
 
 let promote rundir p tc suite =
@@ -183,28 +183,52 @@ let promote rundir p tc suite =
   in
   Filter.select_tests ~state promote_test suite;
 
-  Patch_lines.commit_to_disk ~action:!action ();
+  Patch_lines.commit_to_disk ~action:!todo ();
   ()
+
+let args auto_promote_arg = [
+
+  [ "no-comment" ], Arg.Clear comment,
+  EZCMD.info ~env:(EZCMD.env "AUTOFONCE_PROMOTE_NO_COMMENT")
+    "Do not add a comment with the promotion date";
+
+  [ auto_promote_arg ], Arg.Int (fun n ->
+      auto_promote := n ;
+      todo := Apply ;
+    ),
+  EZCMD.info
+    "Promote and run until all tests have been promoted"
+
+]
+
+let rec action rundir p tc suite =
+  promote rundir p tc suite ;
+  if !auto_promote > 0 then begin
+    only_failed := true ;
+    clean_tests_dir := false ;
+    let n = Testsuite.exec rundir p tc suite in
+    decr auto_promote;
+    if n>0 then
+      let (rundir, p, tc, suite) = Testsuite.read rundir p tc in
+      action rundir p tc suite
+  end
 
 let cmd =
   let args =
     Testsuite.args @
     Filter.args @
+    args "auto-run" @
     [
 
-      [ "apply" ], Arg.Unit (fun () -> action := Apply),
+      [ "apply" ], Arg.Unit (fun () -> todo := Apply),
       EZCMD.info "Apply promotion (default is to diff)" ;
 
-      [ "diff" ], Arg.Unit (fun () -> action := diff),
+      [ "diff" ], Arg.Unit (fun () -> todo := diff),
       EZCMD.info "Diff promotion (default)" ;
 
-      [ "fake" ], Arg.String (fun ext -> action := Fake ext),
+      [ "fake" ], Arg.String (fun ext -> todo := Fake ext),
       EZCMD.info ~docv:".EXT"
         "Apply promotion to create new files with extension $(docv)" ;
-
-      [ "no-comment" ], Arg.Clear comment,
-      EZCMD.info ~env:(EZCMD.env "AUTOFONCE_PROMOTE_NO_COMMENT")
-        "Do not add a comment with the promotion date";
 
     ]
   in
@@ -212,7 +236,7 @@ let cmd =
     "promote"
     (fun () ->
        let rundir, p, tc, suite = Testsuite.find () in
-       promote rundir p tc suite
+       action rundir p tc suite
     )
     ~args
     ~doc: "Promote tests results as expected results"

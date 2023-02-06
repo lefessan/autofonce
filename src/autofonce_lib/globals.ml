@@ -19,6 +19,7 @@ let max_jobs = ref 16
 let testsuite = ref ( None : string option )
 let keep_skipped = ref false
 let keep_all = ref false
+let auto_promote = ref 0
 
 let fake = ref false
 

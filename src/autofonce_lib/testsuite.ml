@@ -44,6 +44,17 @@ let find_project_config () =
       let p = Autofonce_config.Project_config.from_file file in
       Filename.dirname file, p
 
+let read run_dir p tc =
+  let testsuite_file = p.project_source_dir // tc.config_file in
+  if not (Sys.file_exists testsuite_file) then
+    Misc.error "Could not find testsuite file %S in project" testsuite_file ;
+  let path = List.map (fun path ->
+      p.project_source_dir // path
+    ) tc.config_path in
+  Printf.eprintf "Loading tests from file %S\n%!" testsuite_file ;
+  let suite = Parser.read ~path testsuite_file in
+  run_dir, p, tc, suite
+
 let find () =
 
   begin
@@ -82,15 +93,9 @@ let find () =
         in
         iter p.project_testsuites
   in
-  let testsuite_file = p.project_source_dir // tc.config_file in
-  if not (Sys.file_exists testsuite_file) then
-    Misc.error "Could not find testsuite file %S in project" testsuite_file ;
-  let path = List.map (fun path ->
-      p.project_source_dir // path
-    ) tc.config_path in
-  Printf.eprintf "Loading tests from file %S\n%!" testsuite_file ;
-  let suite = Parser.read ~path testsuite_file in
-  run_dir, p, tc, suite
+  read run_dir p tc
+
+
 
 let exec rundir p tc suite =
   Misc.set_signal_handle Sys.sigint (fun _ -> exit 2);
@@ -157,7 +162,7 @@ let exec rundir p tc suite =
   Printf.eprintf "File %S created with failure results\n%!" buffer_file;
   if !print_all then
     Terminal.printf [ Terminal.magenta ] "%s\n%!" buffer;
-  ()
+  List.length state.state_tests_failed
 
 let print_test _c t =
   Printf.printf "%04d %-50s %s\n%!" t.test_id t.test_name

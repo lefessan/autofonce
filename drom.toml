@@ -12,7 +12,7 @@ min-edition = "4.10.0"
 name = "autofonce"
 skeleton = "program"
 synopsis = "autofonce: modern runner for GNU Autoconf Testsuites"
-version = "0.6"
+version = "0.7"
 
 # keys that you could also define:
 # odoc-target = "...odoc-target..."

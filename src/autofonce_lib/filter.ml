@@ -17,6 +17,10 @@ open Globals (* toplevel references *)
 open Ez_file.V1
 open EzFile.OP
 
+module Misc = Autofonce_misc.Misc
+
+let failures = ref None
+
 let select_tests ?state select_test suite =
   ignore state;
   let all_tests =
@@ -50,19 +54,63 @@ let select_tests ?state select_test suite =
             t.test_keywords
         )
       then
-        if !only_failed then
+        if !only_failed then begin
           (* only_failed option should only be available
                                    with state *)
           match state with
-          | None -> assert false
+          | None ->
+              Misc.error "Options --failed/--failure only works with 'run' or 'promote'"
           | Some state ->
               let test_dir = Runner_common.test_dir t in
               let test_dir = state.state_run_dir // test_dir in
               if Sys.file_exists test_dir then
-                select_test t
-              else ()
-        else
-          select_test t)
+                match !failures with
+                | None ->
+                    select_test t
+                | Some failure ->
+                    let reason =
+                      let failure_exitcode = ref false in
+                      let failure_stdout = ref false in
+                      let failure_stderr = ref false in
+                      let files = Sys.readdir test_dir in
+                      Array.iter (fun file ->
+                          if Filename.check_suffix file ".exit.expected" then
+                            failure_exitcode := true
+                          else
+                          if Filename.check_suffix file ".out.expected" then
+                            failure_stdout := true
+                          else
+                          if Filename.check_suffix file ".err.expected" then
+                            failure_stderr := true
+                        ) files ;
+                      String.concat " " (
+                        begin
+                          if !failure_exitcode then
+                            [ "exitcode" ]
+                          else
+                            []
+                        end
+                        @
+                        begin
+                          if !failure_stdout then
+                            [ "stdout" ]
+                          else
+                            []
+                        end
+                        @
+                        begin
+                          if !failure_stderr then
+                            [ "stderr" ]
+                          else
+                            []
+                        end
+                      )
+                    in
+                    if failure = reason then
+                      select_test t
+        end else
+          select_test t
+    )
     suite.suite_tests
 
 open Ezcmd.V2
@@ -103,6 +151,13 @@ let args = [
       clean_tests_dir := false
     ),
   EZCMD.info ~docv:"KEYWORD" "Skip tests matching KEYWORD";
+
+  [ "failures" ], Arg.String (fun s ->
+      only_failed := true ;
+      failures := Some s;
+      clean_tests_dir := false
+    ),
+  EZCMD.info ~docv:"REASON" "Run failed tests with given failure";
 
   [ "failed" ], Arg.Unit (fun () ->
       only_failed := true ;

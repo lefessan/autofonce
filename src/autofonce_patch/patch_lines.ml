@@ -122,8 +122,10 @@ let commit_to_disk ?(action=Diff { exclude=[] }) ?(backup="~") () =
             EzFile.write_file file content;
             Printf.eprintf "File %S updated\n%!" file
         | Apply ->
-            EzFile.write_file (file ^ backup) old_content ;
-            EzFile.write_file file content;
+            let new_file = file ^ ".new" in
+            EzFile.write_file new_file content;
+            Sys.rename file (file ^ backup);
+            Sys.rename new_file file;
             Printf.eprintf "File %S updated\n%!" file
         | Diff { exclude } ->
             if not ( Sys.file_exists tmp_dir ) then begin
@@ -150,6 +152,7 @@ let commit_to_disk ?(action=Diff { exclude=[] }) ?(backup="~") () =
 
 
     ) h;
+  Hashtbl.clear h;
   match action with
   | Diff _ ->
       if Sys.file_exists tmp_dir then begin
