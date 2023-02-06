@@ -19,6 +19,7 @@ let cmd =
   let args =
     Testsuite.args @
     Filter.args @
+    Command_promote.args "auto-promote" @
     [
 
       [ "print-all" ], Arg.Set print_all,
@@ -48,7 +49,9 @@ let cmd =
     "run"
     (fun () ->
        let (rundir, p, tc, suite) = Testsuite.find () in
-       Testsuite.exec rundir p tc suite
+       let n = Testsuite.exec rundir p tc suite in
+       if n>0 && !auto_promote > 0 then
+         Command_promote.action rundir p tc suite
     )
     ~args
     ~doc: "Run testsuite of the current project"

@@ -5,13 +5,13 @@
 (name autofonce)
 (allow_approximate_merlin)
 (generate_opam_files false)
-(version 0.6)
+(version 0.7)
 (formatting (enabled_for ocaml reason))
 
 (package
  (name autofonce)
  (synopsis "autofonce: modern runner for GNU Autoconf Testsuites")
- (description "autofonce is a modern runner for GNU Autoconf Testsuites:\nautofonce has a limited understanding of m4 macros that appear in testsuites\nwritten for the GNU Autoconf testsuites, and can run such tests in a modern\nway:\n* automatic run from any directory\n* short display focusing on failed tests\n* automatic parallelism\n")
+ (description "autofonce is a modern runner for GNU Autoconf Testsuites:\nautofonce has a limited understanding of m4 macros that appear in testsuites\nwritten for the GNU Autoconf testsuites, and can run such tests in a modern\nway:\n* automatic run from any directory\n* short display focusing on failed tests\n* automatic parallel execution\n* automatic promotion of tests outputs\n")
  (depends
    (ocaml (>= 4.10.0))
    (autofonce_lib (= version))
@@ -25,7 +25,7 @@
 (package
  (name autofonce_core)
  (synopsis "autofonce: modern runner for GNU Autoconf Testsuites")
- (description "autofonce is a modern runner for GNU Autoconf Testsuites:\nautofonce has a limited understanding of m4 macros that appear in testsuites\nwritten for the GNU Autoconf testsuites, and can run such tests in a modern\nway:\n* automatic run from any directory\n* short display focusing on failed tests\n* automatic parallelism\n")
+ (description "autofonce is a modern runner for GNU Autoconf Testsuites:\nautofonce has a limited understanding of m4 macros that appear in testsuites\nwritten for the GNU Autoconf testsuites, and can run such tests in a modern\nway:\n* automatic run from any directory\n* short display focusing on failed tests\n* automatic parallel execution\n* automatic promotion of tests outputs\n")
  (depends
    (ocaml (>= 4.10.0))
    (ocplib_stuff ( >= 0.1 ))
@@ -45,7 +45,7 @@
 (package
  (name autofonce_lib)
  (synopsis "autofonce: modern runner for GNU Autoconf Testsuites")
- (description "autofonce is a modern runner for GNU Autoconf Testsuites:\nautofonce has a limited understanding of m4 macros that appear in testsuites\nwritten for the GNU Autoconf testsuites, and can run such tests in a modern\nway:\n* automatic run from any directory\n* short display focusing on failed tests\n* automatic parallelism\n")
+ (description "autofonce is a modern runner for GNU Autoconf Testsuites:\nautofonce has a limited understanding of m4 macros that appear in testsuites\nwritten for the GNU Autoconf testsuites, and can run such tests in a modern\nway:\n* automatic run from any directory\n* short display focusing on failed tests\n* automatic parallel execution\n* automatic promotion of tests outputs\n")
  (depends
    (ocaml (>= 4.10.0))
    (ocplib_stuff ( >= 0.1 ))
@@ -67,7 +67,7 @@
 (package
  (name autofonce_m4)
  (synopsis "autofonce: modern runner for GNU Autoconf Testsuites")
- (description "autofonce is a modern runner for GNU Autoconf Testsuites:\nautofonce has a limited understanding of m4 macros that appear in testsuites\nwritten for the GNU Autoconf testsuites, and can run such tests in a modern\nway:\n* automatic run from any directory\n* short display focusing on failed tests\n* automatic parallelism\n")
+ (description "autofonce is a modern runner for GNU Autoconf Testsuites:\nautofonce has a limited understanding of m4 macros that appear in testsuites\nwritten for the GNU Autoconf testsuites, and can run such tests in a modern\nway:\n* automatic run from any directory\n* short display focusing on failed tests\n* automatic parallel execution\n* automatic promotion of tests outputs\n")
  (depends
    (ocaml (>= 4.10.0))
    (ocplib_stuff ( >= 0.1 ))
@@ -83,7 +83,7 @@
 (package
  (name autofonce_share)
  (synopsis "autofonce: modern runner for GNU Autoconf Testsuites")
- (description "autofonce is a modern runner for GNU Autoconf Testsuites:\nautofonce has a limited understanding of m4 macros that appear in testsuites\nwritten for the GNU Autoconf testsuites, and can run such tests in a modern\nway:\n* automatic run from any directory\n* short display focusing on failed tests\n* automatic parallelism\n")
+ (description "autofonce is a modern runner for GNU Autoconf Testsuites:\nautofonce has a limited understanding of m4 macros that appear in testsuites\nwritten for the GNU Autoconf testsuites, and can run such tests in a modern\nway:\n* automatic run from any directory\n* short display focusing on failed tests\n* automatic parallel execution\n* automatic promotion of tests outputs\n")
  (depends
    (ocaml (>= 4.10.0))
    (crunch ( >= 3.2.0 ))
@@ -97,7 +97,7 @@
 (package
  (name autofonce_patch)
  (synopsis "autofonce: modern runner for GNU Autoconf Testsuites")
- (description "autofonce is a modern runner for GNU Autoconf Testsuites:\nautofonce has a limited understanding of m4 macros that appear in testsuites\nwritten for the GNU Autoconf testsuites, and can run such tests in a modern\nway:\n* automatic run from any directory\n* short display focusing on failed tests\n* automatic parallelism\n")
+ (description "autofonce is a modern runner for GNU Autoconf Testsuites:\nautofonce has a limited understanding of m4 macros that appear in testsuites\nwritten for the GNU Autoconf testsuites, and can run such tests in a modern\nway:\n* automatic run from any directory\n* short display focusing on failed tests\n* automatic parallel execution\n* automatic promotion of tests outputs\n")
  (depends
    (ocaml (>= 4.10.0))
    (ocplib_stuff ( >= 0.1 ))
@@ -112,7 +112,7 @@
 (package
  (name autofonce_config)
  (synopsis "autofonce: modern runner for GNU Autoconf Testsuites")
- (description "autofonce is a modern runner for GNU Autoconf Testsuites:\nautofonce has a limited understanding of m4 macros that appear in testsuites\nwritten for the GNU Autoconf testsuites, and can run such tests in a modern\nway:\n* automatic run from any directory\n* short display focusing on failed tests\n* automatic parallelism\n")
+ (description "autofonce is a modern runner for GNU Autoconf Testsuites:\nautofonce has a limited understanding of m4 macros that appear in testsuites\nwritten for the GNU Autoconf testsuites, and can run such tests in a modern\nway:\n* automatic run from any directory\n* short display focusing on failed tests\n* automatic parallel execution\n* automatic promotion of tests outputs\n")
  (depends
    (ocaml (>= 4.10.0))
    (toml ( >= 0.7 ))
@@ -129,7 +129,7 @@
 (package
  (name autofonce_misc)
  (synopsis "autofonce: modern runner for GNU Autoconf Testsuites")
- (description "autofonce is a modern runner for GNU Autoconf Testsuites:\nautofonce has a limited understanding of m4 macros that appear in testsuites\nwritten for the GNU Autoconf testsuites, and can run such tests in a modern\nway:\n* automatic run from any directory\n* short display focusing on failed tests\n* automatic parallelism\n")
+ (description "autofonce is a modern runner for GNU Autoconf Testsuites:\nautofonce has a limited understanding of m4 macros that appear in testsuites\nwritten for the GNU Autoconf testsuites, and can run such tests in a modern\nway:\n* automatic run from any directory\n* short display focusing on failed tests\n* automatic parallel execution\n* automatic promotion of tests outputs\n")
  (depends
    (ocaml (>= 4.10.0))
    (ocplib_stuff ( >= 0.1 ))

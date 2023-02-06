@@ -1,5 +1,13 @@
 
-## v0.6 ( 2023-02-?? )
+## v0.7 ( 2023-02-?? )
+
+* Add option `--auto-promote MAX` to `autofonce run` to iterate
+  run/promote until all changes have been promoted or a maximal number of
+  MAX iterations
+* Add option `--failures REASON` to select tests matching a specific reason
+   like `exitcode`, `stdout` or `stderr`
+
+## v0.6 ( 2023-02-05 )
 
 * Replace `autofonce.env` by a configuration file:
 
