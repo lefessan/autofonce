@@ -11,6 +11,8 @@ source_anchors = [ "tests/testsuite.at", "!" ]
 #   and to set the AUTOFONCE_BUILD_DIR
 build_anchors = [ "cobc/cobc", "!" ]
 
+build_dir_candidates = [ "_build" ]
+
 [testsuites]
 # alias = "path-from-topdir"
 [testsuites.testsuite]

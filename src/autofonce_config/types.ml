@@ -31,6 +31,7 @@ type project_config = {
   project_name : string option ;
   project_source_anchors : string list ;
   project_build_anchors : string list ;
+  project_build_dir_candidates : string list ;
   project_testsuites : testsuite_config list ;
   project_envs : testsuite_env EzCompat.StringMap.t ;
 

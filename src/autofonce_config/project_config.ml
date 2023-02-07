@@ -25,8 +25,10 @@ let get_string ~prefix ~file table suffix =
     Misc.error "Missing key %s in file %s"
       ( String.concat "." ( prefix @ suffix ) ) file
 
-let find_dir_by_anchor anchors =
-  let cwd = Sys.getcwd () in
+let find_dir_by_anchor ?cwd anchors =
+  let cwd = match cwd with
+    | None -> Sys.getcwd ()
+    | Some cwd -> cwd in
 
   let rec iter anchors =
     match anchors with
@@ -60,6 +62,10 @@ let parse_table ?(computed=true) ~file table =
     EzToml.get_string_list_default table [ "project" ; "build_anchors" ]
       [ Globals.project_config_build ]
   in
+  let project_build_dir_candidates =
+    EzToml.get_string_list_default table [ "project" ; "build_dir_candidates" ]
+      [ "_build" ]
+  in
   let project_source_dir = try
       find_dir_by_anchor project_source_anchors
     with
@@ -71,17 +77,30 @@ let parse_table ?(computed=true) ~file table =
         else
           file_dir
   in
-  let project_build_dir = try
-      find_dir_by_anchor project_build_anchors
-    with Not_found -> file_dir
-       | Exit ->
-           if computed then
-             Misc.error
-               "Could not locate mandatory build dir from project.build_anchors"
-           else
-             file_dir
+  let project_build_dir =
+    let rec iter ~fail candidates =
+      match candidates with
+      | [] ->
+          if fail then
+            if computed then
+              Misc.error
+                "Could not locate mandatory build dir from project.build_anchors"
+            else
+              file_dir
+          else
+            file_dir
+      | cwd :: candidates ->
+          match
+            find_dir_by_anchor ~cwd project_build_anchors
+          with
+          | exception Not_found -> iter ~fail:false candidates
+          | exception Exit -> iter ~fail:true candidates
+          | dir -> dir
+    in
+    iter ~fail:false
+      ( Sys.getcwd () ::
+        (List.map (fun s -> project_source_dir // s) project_build_dir_candidates))
   in
-
   let project_envs =
     let table = try
         EzToml.get_table table [ "envs" ]
@@ -170,6 +189,7 @@ let parse_table ?(computed=true) ~file table =
     project_name ;
     project_source_anchors ;
     project_build_anchors ;
+    project_build_dir_candidates ;
     project_testsuites ;
     project_envs ;
     (* computed *)
@@ -227,6 +247,14 @@ let to_string p =
   Printf.bprintf b "build_anchors = [ %s ]\n"
     ( String.concat ", "
         ( List.map (Printf.sprintf "%S") p.project_build_anchors )) ;
+  Buffer.add_char b '\n';
+
+  Buffer.add_string b "# paths in project sources that are good candidates to\n";
+  Buffer.add_string b "#   be tested as build dirs. Useful to run autofonce\n";
+  Buffer.add_string b "#   from outside the build directory\n";
+  Printf.bprintf b "build_dir_candidates = [ %s ]\n"
+    ( String.concat ", "
+        ( List.map (Printf.sprintf "%S") p.project_build_dir_candidates )) ;
   Buffer.add_char b '\n';
 
   Printf.bprintf b "[testsuites]\n" ;

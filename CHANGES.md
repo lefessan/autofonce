@@ -5,7 +5,10 @@
   run/promote until all changes have been promoted or a maximal number of
   MAX iterations
 * Add option `--failures REASON` to select tests matching a specific reason
-   like `exitcode`, `stdout` or `stderr`
+  like `exitcode`, `stdout` or `stderr`
+* Add config option `build_dir_candidates` (default to `[ "_build" ]`) to
+  automatically try to find build anchors from outside the build dir
+  using alternative candidates
 
 ## v0.6 ( 2023-02-05 )
 

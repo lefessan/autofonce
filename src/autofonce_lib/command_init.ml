@@ -73,6 +73,7 @@ let default_project_config project_file =
     project_build_anchors = [
       Autofonce_config.Globals.project_config_source
     ] ;
+    project_build_dir_candidates = [ "_build" ];
     project_testsuites = [ testsuite_config ] ;
     project_envs = StringMap.of_list [ env.env_name, env ];
 
