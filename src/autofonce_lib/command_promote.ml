@@ -159,12 +159,14 @@ let promote rundir p tc suite =
           Printf.bprintf b "AT_DATA(%s,%s)\n"
             ( Parser.m4_escape file )
             ( Parser.m4_escape content )
+      | AT_ENV string ->
+          Printf.bprintf b "AT_ENV(%s)\n"
+            ( Parser.m4_escape string )
       | AT_CAPTURE_FILE string ->
           Printf.bprintf b "AT_CAPTURE_FILE(%s)\n"
             ( Parser.m4_escape string )
-      | AT_XFAIL_IF string ->
-          Printf.bprintf b "AT_XFAIL_IF(%s)\n"
-            ( Parser.m4_escape string )
+      | AT_XFAIL ->
+          Printf.bprintf b "AT_XFAIL_IF([true])\n"
       | AT_SKIP ->
           Buffer.add_string b "AT_SKIP([true])\n"
       | AT_CHECK  check ->

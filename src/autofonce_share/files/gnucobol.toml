@@ -21,8 +21,8 @@ path = [ "tests/testsuite.src"]
 env = "testsuite"
 
 [testsuites.nist]
-file = "tests/cobol85/nist.at"
-path = [ "tests/cobol85/nistrun.src"]
+file = "tests/nistrun.at"
+path = [ "tests/nistrun.src"]
 env = "testsuite"
 
 [envs]
@@ -38,12 +38,5 @@ abs_builddir=${AUTOFONCE_BUILD_DIR}/tests
 . ${abs_builddir}/atconfig
 . ${abs_builddir}/atlocal
 
-# the following flags are needed for the NIST testsuite
-
-if test "x$AUTOFONCE_TESTSUITE" = "xnist"; then
-  export COB_DISABLE_WARNINGS=Y
-  export COB_SWITCH_1=ON
-  export COB_SWITCH_2=OFF
-fi
 """
 

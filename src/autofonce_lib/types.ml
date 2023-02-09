@@ -36,7 +36,7 @@ and tester = { (* variable name is `ter` *)
   tester_state : state ;
   tester_suite : suite ;
   tester_test : test ;
-  (* can only be determined during execution *)
+  mutable tester_renvs : string list ;
   mutable tester_fail_expected : bool ;
 }
 

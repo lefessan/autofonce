@@ -1,5 +1,17 @@
 
-## v0.7 ( 2023-02-?? )
+## v0.8 ( 2023-02-?? )
+
+* Skip macro definitions with `AC_DEFUN`. This is currently mostly done to
+  allow the definition of: `AC_DEFUN([AT_ENV], [$1])`. Print a warning
+  for discarding the macro definition, except for `AT_ENV`.
+* Add `AT_ENV([env])` as a way to define a specific environment for the test
+  (such as environment variables).
+  * At toplevel, declarations by `AT_ENV` are added in the `autofonce_env.sh`
+    file of every test.
+  * At test level, declarations are added directly in all following
+    check scripts
+
+## v0.7 ( 2023-02-09 )
 
 * Add option `--auto-promote MAX` to `autofonce run` to iterate
   run/promote until all changes have been promoted or a maximal number of
