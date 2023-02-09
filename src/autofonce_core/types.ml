@@ -37,9 +37,10 @@ type check = { (* variable name is `check` *)
 and action =
   | AT_DATA of { file:string ; content: string }
   | AT_CAPTURE_FILE of string
-  | AT_XFAIL_IF of string
+  | AT_XFAIL
   | AT_SKIP
   | AT_CHECK of check
+  | AT_ENV of string
   | AT_CLEANUP of { loc : location }
 
 and test = { (* variable name is `t` *)
@@ -48,6 +49,7 @@ and test = { (* variable name is `t` *)
   test_name : string ;
   test_id : int ;
   test_banner : string ;
+  test_env : string ;
   mutable test_keywords : string list ;
   mutable test_actions : action list ;
 }
@@ -72,10 +74,10 @@ let rec string_of_action = function
       Printf.sprintf "AT_DATA ( file=%S, content=%S )" file content
   | AT_CAPTURE_FILE string ->
       Printf.sprintf "AT_CAPTURE_FILE %s" string
-  | AT_XFAIL_IF string ->
-      Printf.sprintf "AT_XFAIL_IF %s" string
-  | AT_SKIP ->
-      "AT_SKIP"
+  | AT_XFAIL -> "AT_XFAIL_IF([true])"
+  | AT_SKIP -> "AT_SKIP([true])"
+  | AT_ENV env ->
+      Printf.sprintf "AT_ENV %S" env
   | AT_CHECK  check ->
       Printf.sprintf "AT_CHECK %s" ( string_of_check check )
   | AT_CLEANUP { loc } ->

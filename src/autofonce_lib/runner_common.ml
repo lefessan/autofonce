@@ -96,7 +96,8 @@ let exec_action_no_check ter action =
       EzFile.write_file ( tester_dir ter // file ) content
   | AT_CHECK _job -> assert false
   | AT_CLEANUP _ -> ()
-  | AT_XFAIL_IF "true" -> ter.tester_fail_expected <- true
+  | AT_XFAIL -> ter.tester_fail_expected <- true
+  | AT_ENV env -> ter.tester_renvs <- env :: ter.tester_renvs
   | AT_CAPTURE_FILE file ->
       if (Sys.file_exists file) then ()
   (* TODO: save file in log in case of failure *)
@@ -124,6 +125,7 @@ let start_test state t =
     tester_test = t ;
     tester_state = state ;
     tester_suite = c ;
+    tester_renvs = [] ;
     tester_fail_expected = false ;
   }
   in
@@ -144,13 +146,19 @@ AUTOFONCE_SOURCE_DIR="%s"
 # build directory of project
 AUTOFONCE_BUILD_DIR="%s"
 
+# test env by autofonce.toml
+%s
+
+# test env by AT_ENV
 %s
 |}
     state.state_config.config_name
     state.state_run_dir
     state.state_project.project_source_dir
     state.state_project.project_build_dir
-    state.state_config.config_env.env_content;
+    state.state_config.config_env.env_content
+    t.test_env
+  ;
   Unix.chmod ( test_dir // Autofonce_config.Globals.env_autofonce_sh ) 0o755;
   ter
 
@@ -170,12 +178,16 @@ let start_check ter check =
 # create test env
 . ./%s
 
+# additional test env by AT_ENV
+%s
+
 # check to perform
 %s
 
 %s
 |}
       Autofonce_config.Globals.env_autofonce_sh
+      (String.concat "\n" ( List.rev ter.tester_renvs ))
       (commented (string_of_check check))
       check.check_command
   in

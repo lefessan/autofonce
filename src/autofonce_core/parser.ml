@@ -30,7 +30,7 @@ let int_of_string macro n =
 
 let load_file ~path c filename =
 
-  let rec iter_macros c macros =
+  let rec iter_macros c envacc macros =
     match macros with
     | [] -> ()
     | macro :: macros ->
@@ -38,7 +38,7 @@ let load_file ~path c filename =
         | Shell cmd   ->
             Printf.eprintf "At %s:\n  Discarding toplevel shell line: %s\n%!"
               (M4Printer.string_of_location macro.loc) cmd;
-            iter_macros c macros (* TODO *)
+            iter_macros c envacc macros
         | Macro ("m4_include", [ filename ]) ->
             let filename = M4Parser.to_string filename in
             let dirname = Filename.dirname macro.loc.file in
@@ -52,27 +52,43 @@ let load_file ~path c filename =
                   filename
             in
             let new_macros = load_file filename in
-            iter_macros c ( new_macros @ macros )
+            iter_macros c envacc ( new_macros @ macros )
 
+        | Macro ("AC_DEFUN", [ macro_name ; macro_value ]) ->
+            let macro_name = M4Parser.to_string macro_name in
+            let macro_value = M4Parser.to_string macro_value in
+            begin
+              match macro_name, macro_value with
+              | "AT_ENV", "$1" -> ()
+              | _ ->
+                  Printf.eprintf
+                    "At %s:\n  Discarding macro definition of %S\n%!"
+                    (M4Printer.string_of_location macro.loc) macro_name;
+            end;
+            iter_macros c envacc macros
         | Macro ("AT_COPYRIGHT", [ copyright ]) ->
             let copyright = M4Parser.to_string copyright in
             c.suite_copyright <- copyright ;
-            iter_macros c macros
+            iter_macros c envacc macros
+        | Macro ("AT_ENV", [ env ]) ->
+            let env = M4Parser.to_string env in
+            let envacc = Printf.sprintf "%s\n%s" envacc env in
+            iter_macros c envacc macros
         | Macro ("AT_INIT", [ name ]) ->
             let name = M4Parser.to_string name in
             c.suite_name <- name ;
-            iter_macros c macros
+            iter_macros c envacc macros
         | Macro ("AT_COLOR_TESTS", [ ]) ->
-            iter_macros c macros
+            iter_macros c envacc macros
         | Macro ("AT_TESTED", [ tested ]) ->
             let tested = M4Parser.to_string tested in
             c.suite_tested_programs <- c.suite_tested_programs @
                                        EzString.split_simplify tested ' ';
-            iter_macros c macros
+            iter_macros c envacc macros
         | Macro ("AT_BANNER", [ banner ]) ->
             let banner = M4Parser.to_string banner in
             c.suite_banners <- banner :: c.suite_banners ;
-            iter_macros c macros
+            iter_macros c envacc macros
 
         | Macro ("AT_SETUP", [ name ]) ->
             c.suite_ntests <- c.suite_ntests + 1;
@@ -83,6 +99,7 @@ let load_file ~path c filename =
               test_loc = macro.loc ;
               test_name ;
               test_id;
+              test_env = envacc;
               test_keywords = [];
               test_actions = [];
               test_banner = (match c.suite_banners with
@@ -94,7 +111,7 @@ let load_file ~path c filename =
             c.suite_tests <- t :: c.suite_tests ;
             let macros, actions = iter_actions t steps [] macros in
             t.test_actions <- actions ;
-            iter_macros c macros
+            iter_macros c envacc macros
 
         | Macro (_, _) ->
             M4Parser.macro_error macro "At top, unexpected macro %S"
@@ -169,9 +186,29 @@ let load_file ~path c filename =
         let file = M4Parser.to_string file in
         AT_CAPTURE_FILE  file
 
+    | Macro ("AT_ENV", [ env ] ) ->
+        let env = M4Parser.to_string env in
+        AT_ENV env
+
     | Macro ("AT_XFAIL_IF", [ test ]) ->
         let test = M4Parser.to_string test in
-        AT_XFAIL_IF test
+        begin
+          match test with
+          | "true" -> AT_SKIP
+          | check_command ->
+              AT_CHECK {
+                check_step = next_step steps ;
+                check_kind = "XFAILIF" ;
+                check_command ;
+                check_loc = macro.loc ;
+                check_retcode = Some 1 ;
+                check_stdout = Ignore ;
+                check_stderr = Ignore ;
+                check_test = t;
+                check_run_if_pass = [] ;
+                check_run_if_fail = [ AT_XFAIL ] ;
+              }
+        end
 
     | Macro ("AT_SKIP_IF", [ test ]) ->
         let test = M4Parser.to_string test in
@@ -321,7 +358,7 @@ let load_file ~path c filename =
 
   in
   let macros = load_file filename in
-  iter_macros c macros;
+  iter_macros c "" macros;
   ()
 
 let read ?(path=[]) filename =
