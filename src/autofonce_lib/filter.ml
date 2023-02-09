@@ -22,14 +22,21 @@ module Misc = Autofonce_misc.Misc
 let failures = ref None
 
 let select_tests ?state select_test suite =
-  ignore state;
+  let ntests = suite.suite_ntests in
   let all_tests =
     !tests_ids = [] && !tests_keywords = []
   in
   let id_set =
     match !tests_ids with
-    | [] -> IntSet.empty
-    | ids -> IntSet.of_list ids
+    | [] -> Array.make (ntests+1) true
+    | ids ->
+        let t = Array.make (ntests+1) false in
+        List.iter (fun (id1,id2) ->
+            for i = (max id1 1) to (min id2 ntests) do
+              t.(i) <- true
+            done;
+          ) ids;
+        t
   in
   let keyword_set =
     match !tests_keywords with
@@ -45,7 +52,7 @@ let select_tests ?state select_test suite =
       if t.test_id >= !exec_after
       && t.test_id <= !exec_before
       && (all_tests
-          || IntSet.mem t.test_id id_set
+          || id_set. (t.test_id)
           || List.exists (fun k -> StringSet.mem k keyword_set)
             t.test_keywords
          )
@@ -116,6 +123,21 @@ let select_tests ?state select_test suite =
 open Ezcmd.V2
 open EZCMD.TYPES
 
+let set_id s =
+  try
+    let range =
+      match EzString.split s '-' with
+      | [id1 ; "" ] -> (int_of_string id1, max_int)
+      | [id1 ; id2 ] -> (int_of_string id1, int_of_string id2)
+      | [id] ->
+          let id = int_of_string id in
+          if id < 0 then (0,-id-1) else (id,id)
+      | _ -> raise Exit
+    in
+    tests_ids := !tests_ids @ [ range ]
+  with _ ->
+    tests_keywords := !tests_keywords @ [s]
+
 let args = [
 
   [ "k"; "keywords" ], Arg.String (fun s ->
@@ -126,9 +148,7 @@ let args = [
   EZCMD.info ~docv:"KEYWORD" "Run only tests matching KEYWORD";
 
   [ "i"; "ids" ], Arg.String (fun ids ->
-      tests_ids := !tests_ids @
-                   (List.map int_of_string
-                      (EzString.split_simplify ids ' '));
+      List.iter set_id @@ EzString.split_simplify ids ' ' ;
       clean_tests_dir := false
     ),
   EZCMD.info ~docv:"ID" "Run only test ID";
@@ -170,10 +190,7 @@ let args = [
       | [] -> ()
       | _ ->
           List.iter (fun s ->
-              match int_of_string s with
-              | id -> tests_ids := !tests_ids @ [id]
-              | exception _ ->
-                  tests_keywords := !tests_keywords @ [s]
+              set_id s
             ) list ;
           clean_tests_dir := false;
     ),

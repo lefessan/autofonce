@@ -26,7 +26,7 @@ let fake = ref false
 (* selection of tests *)
 let exec_after = ref 0
 let exec_before = ref max_int
-let tests_ids = ref ( [] : int list )
+let tests_ids = ref ( [] : ( int * int ) list )
 let tests_keywords = ref ( [] : string list )
 let tests_nokeywords = ref ( [] : string list )
 let only_failed = ref false

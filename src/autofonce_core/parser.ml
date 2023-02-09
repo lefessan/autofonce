@@ -54,7 +54,7 @@ let load_file ~path c filename =
             let new_macros = load_file filename in
             iter_macros c envacc ( new_macros @ macros )
 
-        | Macro ("AC_DEFUN", [ macro_name ; macro_value ]) ->
+        | Macro ( ( "AC_DEFUN" | "m4_define" ), [ macro_name ; macro_value ]) ->
             let macro_name = M4Parser.to_string macro_name in
             let macro_value = M4Parser.to_string macro_value in
             begin

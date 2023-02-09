@@ -109,11 +109,11 @@ let exec rundir p tc suite =
     Misc.remove_rec tests_dir ;
 
   if not ( Sys.file_exists tests_dir ) then begin
-    Runner_common.output "Creating testing directory %s\n%!"
+    Runner_common.output state "Creating testing directory %s\n%!"
       (Sys.getcwd () // tests_dir);
     Unix.mkdir tests_dir 0o755;
   end else begin
-    Runner_common.output "Using testing directory %s\n%!"
+    Runner_common.output state "Using testing directory %s\n%!"
       (Sys.getcwd () // tests_dir);
   end;
 

@@ -21,33 +21,41 @@ module Parser = Autofonce_core.Parser
 module Misc = Autofonce_misc.Misc
 module Project_config = Autofonce_config.Project_config
 
-let buffer_test ter fmt =
+let status_len = 30
+let spaces = String.make 80 ' '
+
+let test_status ter fmt =
   let t = ter.tester_test in
-  let state = ter.tester_state in
   Printf.kprintf (fun s ->
-      Printf.bprintf state.state_buffer "%04d %-45s %s\n"
-        t.test_id t.test_name s) fmt
+      let len = String.length s in
+      let status_len = if len > status_len then len else status_len in
+      let test_id = Printf.sprintf "%04d" t.test_id in
+      let id_len = String.length test_id in
+      let max_name_len = 79 - 2 - status_len - id_len in
+      let max_name_len = if max_name_len < 0 then 0 else max_name_len in
+      let len = String.length t.test_name in
+      let test_name =
+        if len > max_name_len then
+          String.sub t.test_name 0 max_name_len
+        else
+          t.test_name ^ String.sub spaces 0 (max_name_len - len)
+      in
+      Printf.sprintf "%s %s %s" test_id test_name s
+    ) fmt
+
+let buffer_test state test_status =
+  Printf.bprintf state.state_buffer "%s\n" test_status
 
 let commented s =
   "# " ^ String.concat "\n# " (EzString.split s '\n')
 
-let output fmt =
+let output state fmt =
   Printf.kprintf (fun s ->
       Terminal.move_bol ();
       Terminal.erase Eol;
-      Printf.printf "%s\n%!" s) fmt
-
-let output_test ter fmt =
-  let t = ter.tester_test in
-  Printf.kprintf (fun s ->
-      output "%04d %-45s %s"  t.test_id t.test_name s) fmt
-
-let print_ntests n list =
-  List.iteri (fun i ter ->
-      if i < n then Printf.printf " %04d" ter.tester_test.test_id
-      else
-      if i = n then Printf.printf ".."
-    ) list
+      Terminal.printf [] "%s\n%!" s;
+      state.state_status_printed <- false
+    ) fmt
 
 let test_dir t =
   Autofonce_config.Globals.tests_dir // Printf.sprintf "%04d" t.test_id
@@ -64,8 +72,10 @@ let test_is_skipped_fail cer s =
   let check = cer.checker_check in
   if not !keep_skipped then Misc.remove_rec ( tester_dir ter ) ;
   state.state_tests_failexpected <- ter :: state.state_tests_failexpected ;
-  buffer_test ter "SKIPPED FAIL (%s %s)"
-    ( Parser.name_of_loc check.check_loc ) s
+  buffer_test state (
+    test_status ter "SKIPPED FAIL (%s %s)"
+      ( Parser.name_of_loc check.check_loc ) s
+  )
 
 let test_is_failed cer s =
   let ter = cer.checker_tester in
@@ -74,12 +84,16 @@ let test_is_failed cer s =
   if ter.tester_fail_expected then begin
     state.state_tests_failexpected <- ter :: state.state_tests_failexpected ;
     if not !keep_skipped then Misc.remove_rec ( tester_dir ter ) ;
-    buffer_test ter "EXPECTED FAIL (%s %s)"
-      ( Parser.name_of_loc check.check_loc ) s;
+    buffer_test state
+      ( test_status ter "EXPECTED FAIL (%s %s)"
+          ( Parser.name_of_loc check.check_loc ) s )
   end else begin
     state.state_tests_failed <- ter :: state.state_tests_failed ;
-    output_test ter "FAIL (%s %s)" ( Parser.name_of_loc check.check_loc ) s;
-    buffer_test ter "FAIL (%s %s)" ( Parser.name_of_loc check.check_loc ) s;
+    let status =
+      test_status ter "FAIL (%s %s)" ( Parser.name_of_loc check.check_loc ) s
+    in
+    output state "%s" status;
+    buffer_test state status;
     if !stop_on_first_failure then exit 2;
   end
 
@@ -88,7 +102,8 @@ let test_is_skip ter =
   let state = ter.tester_state in
   state.state_tests_skipped <- ter :: state.state_tests_skipped ;
   if not !keep_skipped then Misc.remove_rec ( tester_dir ter ) ;
-  buffer_test ter "SKIP (%s)" ( Parser.name_of_loc t.test_loc )
+  buffer_test state
+    (test_status ter "SKIP (%s)" ( Parser.name_of_loc t.test_loc ) )
 
 let exec_action_no_check ter action =
   match action with
@@ -105,21 +120,37 @@ let exec_action_no_check ter action =
       Printf.kprintf failwith "exec_action: %s not implemented"
         ( string_of_action action )
 
+
+let print_ntests n list =
+  List.iteri (fun i ter ->
+      if i < n then Printf.printf " %04d" ter.tester_test.test_id
+      else
+      if i = n then Printf.printf ".."
+    ) list
+
+(* header: 12
+   fails: 8 + 4 + 5*3 + 2 = 29
+   status reste 40
+*)
 let print_status state =
-  Terminal.move_bol ();
-  Terminal.erase Eol;
-  Printf.printf " %d / %d%!" state.state_ntests_ran state.state_ntests;
-  if state.state_tests_failed <> [] then begin
-    Terminal.printf [ Terminal.red ]
-      " %d failed:%!" (List.length state.state_tests_failed);
-    print_ntests 3 state.state_tests_failed;
-  end;
-  Printf.printf " %s%!" state.state_status;
-  ()
+  if not state.state_status_printed then begin
+    Terminal.move_bol ();
+    Terminal.erase Eol;
+    Terminal.printf [] " %d / %d" state.state_ntests_ran state.state_ntests;
+    if state.state_tests_failed <> [] then begin
+      Terminal.printf [ Terminal.red ]
+        " %d fails:%!" (List.length state.state_tests_failed);
+      print_ntests 3 state.state_tests_failed;
+    end;
+    Terminal.printf [] " %s" state.state_status;
+    Printf.printf "%!";
+    state.state_status_printed <- true
+  end
 
 let start_test state t =
   let c = state.state_suite in
   state.state_ntests_ran <- state.state_ntests_ran + 1;
+  state.state_status_printed <- false ;
   print_status state;
   let ter = {
     tester_test = t ;
@@ -265,4 +296,5 @@ let create_state state_run_dir p tc suite =
     state_buffer = Buffer.create 10000;
     state_ntests = suite.suite_ntests ;
     state_nchecks = 0;
+    state_status_printed = false ;
   }

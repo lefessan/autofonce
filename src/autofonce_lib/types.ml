@@ -30,6 +30,7 @@ type state = { (* variable name is `state` *)
   mutable state_buffer : Buffer.t ;
   mutable state_ntests : int ;
   mutable state_nchecks : int ;
+  mutable state_status_printed : bool ;
 }
 
 and tester = { (* variable name is `ter` *)
