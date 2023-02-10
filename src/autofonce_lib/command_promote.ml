@@ -25,12 +25,23 @@ open Globals
 let diff = Patch_lines.Diff { exclude = [ "^# promoted on .*" ]}
 let todo = ref diff
 let comment = ref true
+let not_exit = ref false
 
 let promote rundir p tc suite =
   only_failed := true ;
   Patch_lines.reset ();
   let state = Runner_common.create_state rundir p tc suite in
   Unix.chdir state.state_run_dir ;
+  let comment_line =
+    let t = Unix.gettimeofday () in
+    let tm = Unix.localtime t in
+    Printf.sprintf "# promoted on %04d-%02d-%02dT%02d:%02d"
+      ( 1900 + tm.tm_year )
+      ( 1 + tm.tm_mon )
+      tm.tm_mday
+      tm.tm_hour
+      tm.tm_min
+  in
   let promote_test t =
     let file = t.test_loc.file in
     Printf.eprintf "Promoting test %d %s\n%!"
@@ -47,16 +58,9 @@ let promote rundir p tc suite =
 
     Printf.bprintf b "AT_SETUP(%s)\n" (Parser.m4_escape t.test_name);
 
-    begin
-      let t = Unix.gettimeofday () in
-      let tm = Unix.localtime t in
-      Printf.bprintf b "# promoted on %04d-%02d-%02dT%02d:%02d\n"
-        ( 1900 + tm.tm_year )
-        ( 1 + tm.tm_mon )
-        tm.tm_mday
-        tm.tm_hour
-        tm.tm_min
-    end;
+    if !comment then
+      Printf.bprintf b "%s\n" comment_line;
+
     begin
       match t.test_keywords with
       | [] -> ()
@@ -74,8 +78,17 @@ let promote rundir p tc suite =
         if Sys.file_exists check_exit then
           let s = EzFile.read_file check_exit in
           let retcode = int_of_string s in
-          Printf.bprintf b ", [%d]" retcode;
-          true
+          if !not_exit then
+            match check.check_retcode with
+            | None -> false
+            | Some old_retcode ->
+                Printf.bprintf b ",\n# EXIT WITH %d\n[%d]"
+                  retcode old_retcode ;
+                true
+          else begin
+            Printf.bprintf b ", [%d]" retcode;
+            true
+          end
         else
           match check.check_retcode with
           | None -> false
@@ -193,6 +206,9 @@ let args auto_promote_arg = [
   [ "no-comment" ], Arg.Clear comment,
   EZCMD.info ~env:(EZCMD.env "AUTOFONCE_PROMOTE_NO_COMMENT")
     "Do not add a comment with the promotion date";
+
+  [ "not-exit" ], Arg.Set not_exit,
+  EZCMD.info "Do not promote exit code" ;
 
   [ auto_promote_arg ], Arg.Int (fun n ->
       auto_promote := n ;

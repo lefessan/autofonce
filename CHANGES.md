@@ -1,6 +1,9 @@
 
 ## v0.8 ( 2023-02-?? )
 
+* Fix `--no-comment` for promotion that was not used
+* Add argument `--no-exit` to `promote`, to promote everything except the
+  exit code (so that the test will still fail with `exitcode`)
 * New config option 'project.run_from' that specifies where `_autofonce/`
   should be created: `build` for build directory (default), `source` for
   source directory or `config` for configuration file directory
