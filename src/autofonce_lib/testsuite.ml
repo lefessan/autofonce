@@ -37,12 +37,10 @@ let find_project_config () =
               Autofonce_config.Globals.project_config_build ;
             exit 2
         | file ->
-            let p = Autofonce_config.Project_config.from_file file in
-            p.project_build_dir, p
+            Autofonce_config.Project_config.from_file file
       end
   | file ->
-      let p = Autofonce_config.Project_config.from_file file in
-      Filename.dirname file, p
+      Autofonce_config.Project_config.from_file file
 
 let read run_dir p tc =
   let testsuite_file = p.project_source_dir // tc.config_file in
@@ -69,7 +67,8 @@ let find () =
     with Not_found -> ()
   end;
 
-  let run_dir, p = find_project_config () in
+  let p = find_project_config () in
+  let run_dir = p.project_run_dir in
   Printf.eprintf "Project description loaded from %s\n%!" p.project_file;
   let tc =
     match !Globals.testsuite with

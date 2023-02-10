@@ -1,6 +1,9 @@
 
 ## v0.8 ( 2023-02-?? )
 
+* New config option 'project.run_from' that specifies where `_autofonce/`
+  should be created: `build` for build directory (default), `source` for
+  source directory or `config` for configuration file directory
 * Support for range of test ids like `1-10` or `10-`
 * Skip macro definitions with `AC_DEFUN/m4_define`. This is currently
   mostly done to allow the definition of: `AC_DEFUN([AT_ENV],
