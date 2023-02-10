@@ -30,7 +30,9 @@ and running_test = {
 }
 
 let b = Buffer.create 100
-let update_status s =
+let title_size = 28
+let spaces = String.make title_size ' '
+let update_status s = (* 1 + 4 + 1 + 32 + 3 + 2 = 43 chars *)
   Buffer.clear b;
   let n = IntMap.cardinal s.running_tests in
   if n > 0 then begin
@@ -40,20 +42,21 @@ let update_status s =
     | Some (_, r) ->
         let ter = r.running_test in
         let t = ter.tester_test in
-        Printf.bprintf b "%d %-32s"
+        Printf.bprintf b "%d %s"
           t.test_id
           (let len = String.length t.test_name in
-           if len > 32 then
-             (String.sub t.test_name 0 30 ^ "..")
+           if len > title_size then
+             (String.sub t.test_name 0 (title_size-2) ^ "..")
            else
-             t.test_name
+             t.test_name ^ (String.sub spaces 0 (title_size - len))
           );
         if n > 1 then
           Printf.bprintf b " +%d]" (n-1)
         else
           Buffer.add_string b "]"
   end;
-  s.state.state_status <- Buffer.contents b
+  s.state.state_status <- Buffer.contents b;
+  s.state.state_status_printed <- false
 
 let rec schedule_job r =
   match r.waiting_actions with

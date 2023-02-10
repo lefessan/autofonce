@@ -62,6 +62,9 @@ let rec exec_action_or_check ter action =
 
 let exec_test state t =
   let ter = Runner_common.start_test state t in
+  state.state_status <- Printf.sprintf "running test %04d" t.test_id ;
+  state.state_status_printed <- false;
+  Runner_common.print_status state;
   begin try
       List.iter (exec_action_or_check ter) t.test_actions;
       Runner_common.test_is_ok ter
@@ -79,7 +82,7 @@ let exec_testsuite state =
   let suite = state.state_suite in
   Filter.select_tests ~state (fun t ->
       if t.test_banner <> state.state_banner then begin
-        Runner_common.output "%s" t.test_banner;
+        Runner_common.output state "%s" t.test_banner;
         state.state_banner <- t.test_banner
       end;
       exec_test state t;

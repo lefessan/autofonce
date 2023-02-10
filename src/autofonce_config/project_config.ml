@@ -184,10 +184,26 @@ let parse_table ?(computed=true) ~file table =
 
   let project_name = EzToml.get_string_option table
       [ "project" ; "name" ] in
-
+  let project_run_from = EzToml.get_string_default table
+      [ "project" ; "run_from" ] "build" in
+  let project_run_from = match project_run_from with
+    | "build" -> Build_dir
+    | "source" -> Source_dir
+    | "config" -> Config_dir
+    | _ -> Misc.error
+             "Wrong value %S for project.run_from, should be 'build', 'source' or 'config'"
+             project_run_from
+  in
+  let project_run_dir =
+    match project_run_from with
+    | Build_dir -> project_build_dir
+    | Source_dir -> project_source_dir
+    | Config_dir -> Filename.dirname project_file
+  in
   {
     project_name ;
     project_source_anchors ;
+    project_run_from ;
     project_build_anchors ;
     project_build_dir_candidates ;
     project_testsuites ;
@@ -196,6 +212,7 @@ let parse_table ?(computed=true) ~file table =
     project_file ;
     project_source_dir ;
     project_build_dir ;
+    project_run_dir ;
   }
 
 let from_file file =
@@ -255,6 +272,17 @@ let to_string p =
   Printf.bprintf b "build_dir_candidates = [ %s ]\n"
     ( String.concat ", "
         ( List.map (Printf.sprintf "%S") p.project_build_dir_candidates )) ;
+  Buffer.add_char b '\n';
+
+  Buffer.add_string b "# where the _autofonce/ dir should be created:\n";
+  Buffer.add_string b "#   * 'build': in the build directory\n";
+  Buffer.add_string b "#   * 'source': in the source directory\n";
+  Buffer.add_string b "#   * 'config': in the directory of the config file\n";
+  Printf.bprintf b "run_from = %S\n"
+    ( match p.project_run_from with
+      | Build_dir -> "build"
+      | Source_dir -> "source"
+      | Config_dir -> "config" ) ;
   Buffer.add_char b '\n';
 
   Printf.bprintf b "[testsuites]\n" ;
