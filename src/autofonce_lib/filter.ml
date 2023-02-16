@@ -28,7 +28,7 @@ let select_tests ?state select_test suite =
   in
   let id_set =
     match !tests_ids with
-    | [] -> Array.make (ntests+1) true
+    | [] -> Array.make (ntests+1) false
     | ids ->
         let t = Array.make (ntests+1) false in
         List.iter (fun (id1,id2) ->
