@@ -62,9 +62,15 @@ let test_dir t =
 let tester_dir ter = test_dir ter.tester_test
 
 let test_is_ok ter =
+  let test = ter.tester_test in
   if not !keep_all then Misc.remove_rec ( tester_dir ter ) ;
   let state = ter.tester_state in
-  state.state_ntests_ok <- state.state_ntests_ok + 1
+  state.state_ntests_ok <- state.state_ntests_ok + 1;
+  buffer_test state (
+    test_status ter "OK (%s)"
+      ( Parser.name_of_loc test.test_loc )
+  )
+
 
 let test_is_skipped_fail cer s =
   let ter = cer.checker_tester in
