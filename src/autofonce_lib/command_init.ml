@@ -77,6 +77,7 @@ let default_project_config project_file =
     project_testsuites = [ testsuite_config ] ;
     project_envs = StringMap.of_list [ env.env_name, env ];
     project_run_from = Build_dir ;
+    project_captured_files = [];
 
     project_file = project_file ;
     project_source_dir = Filename.dirname project_file ;

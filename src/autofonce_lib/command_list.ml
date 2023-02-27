@@ -22,7 +22,7 @@ let cmd =
   EZCMD.sub
     "list"
     (fun () ->
-       let (_rundir, _p, _tc, suite) = Testsuite.find () in
+       let (_p, _tc, suite) = Testsuite.find () in
        Testsuite.print suite
     )
     ~args

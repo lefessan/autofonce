@@ -48,10 +48,19 @@ let cmd =
   EZCMD.sub
     "run"
     (fun () ->
-       let (rundir, p, tc, suite) = Testsuite.find () in
-       let n = Testsuite.exec rundir p tc suite in
-       if n>0 && !auto_promote > 0 then
-         Command_promote.action rundir p tc suite
+       Printexc.record_backtrace true ;
+       try
+         let (p, tc, suite) = Testsuite.find () in
+         let n = Testsuite.exec p tc suite in
+         if n>0 && !auto_promote > 0 then
+           Command_promote.action p tc suite
+         else
+         if n>0 then exit 1
+       with
+         exn ->
+           if Printexc.backtrace_status () then
+             Printexc.print_backtrace stderr;
+           raise exn
     )
     ~args
     ~doc: "Run testsuite of the current project"

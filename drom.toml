@@ -37,10 +37,14 @@ way:
 
 [project]
 skip = [
+     "test",
+     "tests",
      "README.md",
      "CHANGES.md",
+     ".github/workflows/workflow.yml",
      "sphinx/install.rst",
-     "sphinx/index.rst", "sphinx/about.rst" ]
+     "sphinx/index.rst",
+     "sphinx/about.rst" ]
 
 # project-wide library dependencies (not for package-specific deps)
 [dependencies]
@@ -78,6 +82,7 @@ share-dirs = ["share"]
 dot-gitignore-trailer = """
 /autofonce-*.bin
 /gh-pages
+*.exe
 """
 
 [[package]]

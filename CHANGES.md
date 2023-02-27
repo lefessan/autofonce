@@ -18,6 +18,16 @@
     file of every test.
   * At test level, declarations are added directly in all following
     check scripts
+* Add `AT_COPY(files)` to copy files from the test source directory to the
+    test run directory
+* Add `AT_LINK(files)`, same as AT_COPY, but symlink instead of copy
+* Add a testsuite in `test/testsuite.at`
+* Implements `AT_FAIL_IF`
+* Don't promote failing `AT_CHECK` with `run-if-fail` or `run-if-pass`
+* Exit with non-zero status on failed tests
+* If testsuite location is a directory instead of a file, scan all directoies
+  and sub-directories for files `*.at` containing tests.
+* New option `-o LOGFILE` to specify the log file
 
 ## v0.7 ( 2023-02-09 )
 
