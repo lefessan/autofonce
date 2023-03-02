@@ -40,6 +40,8 @@ type project_config = {
   project_run_from : run_from ;
   project_testsuites : testsuite_config list ;
   project_envs : testsuite_env EzCompat.StringMap.t ;
+  (* list of files to include in results.log *)
+  project_captured_files : string list ;
 
   (* computed *)
   project_file : string ;

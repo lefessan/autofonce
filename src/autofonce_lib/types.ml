@@ -10,6 +10,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
+open EzCompat (* for StringSet *)
+
 include Autofonce_core.Types
 include Autofonce_config.Types
 
@@ -39,6 +41,7 @@ and tester = { (* variable name is `ter` *)
   tester_test : test ;
   mutable tester_renvs : string list ;
   mutable tester_fail_expected : bool ;
+  mutable tester_captured_files : StringSet.t ;
 }
 
 and checker = { (* variable name is `cer` *)

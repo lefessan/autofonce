@@ -76,56 +76,91 @@ and schedule_action r action =
   if !Globals.verbose > 1 then Printf.eprintf "schedule_action\n%!";
   match action with
   | AT_SKIP -> Runner_common.test_is_skip r.running_test
+  | AT_FAIL ->
+      (* TODO: cannot be auto-promoted, of course... *)
+      let loc = r.running_test.tester_test.test_loc in
+      Runner_common.test_is_failed loc r.running_test "FAIL_IF"
   | AT_CHECK check ->
+      schedule_check r check
+  | AT_XFAIL_IF { step ; loc ; command } ->
       let ter = r.running_test in
-      let cer = Runner_common.start_check ter check in
-      if !Globals.verbose > 1 then
-        Printf.eprintf "JOB %d STARTED\n%!" cer.checker_pid;
-      r.current_check <- Some cer ;
+      schedule_check r
+        ( Runner_common.check_of_AT_XFAIL_IF ter step loc command )
+  | AT_SKIP_IF { step ; loc ; command } ->
+      let ter = r.running_test in
+      schedule_check r
+        ( Runner_common.check_of_AT_SKIP_IF ter step loc command )
+  | AT_FAIL_IF { step ; loc ; command } ->
+      let ter = r.running_test in
+      schedule_check r
+        ( Runner_common.check_of_AT_FAIL_IF ter step loc command )
+  | AT_COPY { step ; loc ; command ; _ } ->
+      let ter = r.running_test in
+      schedule_check r (
+        Runner_common.check_of_at_file ~copy:true ter step loc command )
+  | AT_LINK { step ; loc ; command ; _ } ->
+      let ter = r.running_test in
+      schedule_check r (
+        Runner_common.check_of_at_file ~copy:false ter step loc command )
 
-      let s = r.scheduler in
-      s.current_jobs <- s.current_jobs + 1;
-      s.running_tests <- IntMap.add cer.checker_pid r s.running_tests;
-      update_status s
-
-  | _ ->
+  | AT_XFAIL
+  | AT_DATA _
+  | AT_CAPTURE_FILE _
+  | AT_CLEANUP _
+  | AT_ENV _
+    ->
       Runner_common.exec_action_no_check r.running_test action;
       schedule_job r
 
-  let schedule_test s t =
-    if !Globals.verbose > 1 then Printf.eprintf "schedule_test\n%!";
-    let state = s.state in
-    let ter = Runner_common.start_test state t in
-    let r = {
-      scheduler = s ;
-      running_test = ter ;
-      waiting_actions = [ t.test_actions ] ;
-      current_check = None ;
-    } in
-    schedule_job r
+and schedule_check r check =
+  let ter = r.running_test in
+  let cer = Runner_common.start_check ter check in
+  if !Globals.verbose > 1 then
+    Printf.eprintf "JOB %d STARTED\n%!" cer.checker_pid;
+  r.current_check <- Some cer ;
 
-  and job_terminated r retcode =
-    if !Globals.verbose > 1 then Printf.eprintf "job_terminated\n%!";
-    match r.current_check with
-    | None -> assert false
-    | Some cer ->
-        let check = cer.checker_check in
-        let failures = Runner_common.check_failures cer retcode in
-        match failures with
-        | [] -> (* SUCCESS *)
-            r.waiting_actions <- check.check_run_if_pass :: r.waiting_actions;
-            schedule_job r
-        | failures ->
-            match check.check_run_if_fail with
-            | [] ->
-                let failures = String.concat " " failures in
-                if retcode = 77 then
-                  Runner_common.test_is_skipped_fail cer failures
-                else
-                  Runner_common.test_is_failed cer failures
-            | actions ->
-                r.waiting_actions <- actions :: r.waiting_actions;
-                schedule_job r
+  let s = r.scheduler in
+  s.current_jobs <- s.current_jobs + 1;
+  s.running_tests <- IntMap.add cer.checker_pid r s.running_tests;
+  update_status s
+
+let schedule_test s t =
+  if !Globals.verbose > 1 then Printf.eprintf "schedule_test\n%!";
+  let state = s.state in
+  let ter = Runner_common.start_test state t in
+  let r = {
+    scheduler = s ;
+    running_test = ter ;
+    waiting_actions = [ t.test_actions ] ;
+    current_check = None ;
+  } in
+  schedule_job r
+
+and job_terminated r retcode =
+  if !Globals.verbose > 1 then Printf.eprintf "job_terminated\n%!";
+  match r.current_check with
+  | None -> assert false
+  | Some cer ->
+      let check = cer.checker_check in
+      let failures = Runner_common.check_failures cer retcode in
+      match failures with
+      | [] -> (* SUCCESS *)
+          r.waiting_actions <- check.check_run_if_pass :: r.waiting_actions;
+          schedule_job r
+      | failures ->
+          match check.check_run_if_fail with
+          | [] ->
+              let failures = String.concat " " failures in
+              if retcode = 77 then
+                Runner_common.test_is_skipped_fail cer failures
+              else
+                let check = cer.checker_check in
+                let ter = cer.checker_tester in
+                let loc = check.check_loc in
+                Runner_common.test_is_failed loc ter failures
+          | actions ->
+              r.waiting_actions <- actions :: r.waiting_actions;
+              schedule_job r
 
 let run s =
   let rec iter () =

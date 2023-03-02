@@ -11,6 +11,8 @@
 (**************************************************************************)
 
 open EzCompat (* for IntMap *)
+open Ez_file.V1
+open EzFile.OP
 open Types
 
 open Autofonce_m4.M4Types
@@ -186,28 +188,15 @@ let load_file ~path c filename =
         let file = M4Parser.to_string file in
         AT_CAPTURE_FILE  file
 
-    | Macro ("AT_ENV", [ env ] ) ->
-        let env = M4Parser.to_string env in
-        AT_ENV env
-
     | Macro ("AT_XFAIL_IF", [ test ]) ->
         let test = M4Parser.to_string test in
         begin
           match test with
-          | "true" -> AT_SKIP
-          | check_command ->
-              AT_CHECK {
-                check_step = next_step steps ;
-                check_kind = "XFAILIF" ;
-                check_command ;
-                check_loc = macro.loc ;
-                check_retcode = Some 1 ;
-                check_stdout = Ignore ;
-                check_stderr = Ignore ;
-                check_test = t;
-                check_run_if_pass = [] ;
-                check_run_if_fail = [ AT_XFAIL ] ;
-              }
+          | "true" -> AT_XFAIL
+          | command ->
+              let step = next_step steps in
+              let loc = macro.loc in
+              AT_XFAIL_IF { step ; loc ; command }
         end
 
     | Macro ("AT_SKIP_IF", [ test ]) ->
@@ -215,19 +204,21 @@ let load_file ~path c filename =
         begin
           match test with
           | "true" -> AT_SKIP
-          | check_command ->
-              AT_CHECK {
-                check_step = next_step steps ;
-                check_kind = "SKIPIF" ;
-                check_command ;
-                check_loc = macro.loc ;
-                check_retcode = Some 1 ;
-                check_stdout = Ignore ;
-                check_stderr = Ignore ;
-                check_test = t;
-                check_run_if_pass = [] ;
-                check_run_if_fail = [ AT_SKIP ] ;
-              }
+          | command ->
+              let step = next_step steps in
+              let loc = macro.loc in
+              AT_SKIP_IF { step ; loc ; command }
+        end
+
+    | Macro ("AT_FAIL_IF", [ test ]) ->
+        let test = M4Parser.to_string test in
+        begin
+          match test with
+          | "true" -> AT_FAIL
+          | command ->
+              let step = next_step steps in
+              let loc = macro.loc in
+              AT_FAIL_IF { step ; loc ; command }
         end
 
     | Macro ("AT_CHECK", args ) ->
@@ -240,7 +231,9 @@ let load_file ~path c filename =
         in
         let check_retcode, args =
           match args with
-          | [] -> None, []
+          | [] -> Some 0, []
+          | { arg = "ignore" | "[ignore]" ; _ } :: args ->
+              None, args
           | num :: args ->
               Some (
                 int_of_string macro
@@ -303,9 +296,11 @@ let load_file ~path c filename =
           check_run_if_fail ;
           check_run_if_pass }
 
+(*
     | Macro ("MANUAL_CHECK", _ ) ->
         (* TODO *)
         assert false
+*)
 
     | Shell check_command ->
         (* Printf.eprintf "Shell: [ %s ]\n%!" cmd;*)
@@ -322,11 +317,21 @@ let load_file ~path c filename =
           check_run_if_fail = [] ;
         }
 
+    (* Extensions *)
+    | Macro ("AT_ENV", [ env ] ) ->
+        AT_ENV ( M4Parser.to_string env )
+
+    | Macro ("AT_COPY", files ) ->
+        at_file steps macro ~copy:true files
+
+    | Macro ("AT_LINK", files ) ->
+        at_file steps macro ~copy:false files
+
+    (* Unknown macros *)
     | Macro (_, _) ->
-        Printf.eprintf "%s: unexpected macro %S\n%!"
-          (M4Printer.string_of_location macro.loc)
-          (M4Printer.string_of_macro macro) ;
-        assert false
+        M4Parser.macro_error macro
+          "unexpected test macro %S\n%!"
+          (M4Printer.string_of_macro macro)
 
   and next_step steps =
     let step = String.concat "_"
@@ -356,6 +361,40 @@ let load_file ~path c filename =
         exit 2
     | macros -> macros
 
+  and at_file steps macro ~copy files =
+    let dir = Filename.dirname macro.loc.file in
+    let files = List.map M4Parser.to_string files in
+    let check_kind = if copy then "COPY" else "LINK" in
+    let command =
+      String.concat " && "
+        ( List.map (fun file ->
+              let filename = dir // file in
+              if not (Sys.file_exists filename ) then
+                M4Parser.macro_error macro
+                  "AT_COPY: file %S does not exist" filename;
+              let basename = Filename.basename file in
+              begin
+                match basename with
+                | "." | ".." ->
+                    M4Parser.macro_error macro
+                      "AT_%s file %s has no basename"
+                      check_kind
+                      file
+                | _ ->
+                    Printf.sprintf "%s %s %s"
+                      (if copy then "cp -R" else "ln -s")
+                      filename
+                      basename
+              end
+            ) files )
+    in
+    let step = next_step steps in
+    let loc = macro.loc in
+    if copy then
+      AT_COPY { step ; loc ; command ; files }
+    else
+      AT_LINK { step ; loc ; command ; files }
+
   in
   let macros = load_file filename in
   iter_macros c "" macros;
@@ -375,7 +414,14 @@ let read ?(path=[]) filename =
     suite_dir ;
   }
   in
-  load_file ~path c filename;
+  if Sys.is_directory filename then
+    let select = EzFile.select ~deep:true ~glob:"*.at" () in
+    EzFile.iter_dir ~select filename ~f:(fun file ->
+        let filename = filename // file in
+        load_file ~path c filename
+      )
+  else
+    load_file ~path c filename;
   c.suite_banners <- List.rev c.suite_banners ;
   c.suite_tests <- List.rev c.suite_tests ;
   c

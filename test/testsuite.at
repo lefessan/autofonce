@@ -1,0 +1,15 @@
+
+# Some comment
+AT_INIT([Autofonce tests])
+
+AT_ENV([
+export VAR_EXPORT='Exported var'
+VAR_INTERNAL='Internal var'
+])
+
+AT_COLOR_TESTS
+
+AT_TESTED([autofonce])
+
+AT_BANNER([Banner for tests])
+m4_include([simple_tests.at])

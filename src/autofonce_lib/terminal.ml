@@ -17,3 +17,5 @@ let move_bol () =
     Printf.printf "\n"
   else
     move_bol ()
+
+let isatty = Unix.isatty Unix.stdout

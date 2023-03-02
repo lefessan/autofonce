@@ -181,6 +181,10 @@ let parse_table ?(computed=true) ~file table =
       table;
     !testsuites
   in
+  let project_captured_files =
+    EzToml.get_string_list_default table [ "project" ; "captured_files" ]
+      []
+  in
 
   let project_name = EzToml.get_string_option table
       [ "project" ; "name" ] in
@@ -208,6 +212,8 @@ let parse_table ?(computed=true) ~file table =
     project_build_dir_candidates ;
     project_testsuites ;
     project_envs ;
+    project_captured_files ;
+
     (* computed *)
     project_file ;
     project_source_dir ;
@@ -312,6 +318,13 @@ let to_string p =
           Printf.bprintf b {|%s = """%s"""|} env_name t.env_content;
           Buffer.add_char b '\n';
     ) p.project_envs ;
+  Buffer.add_char b '\n';
+
+  Buffer.add_string b "# files to be captured into results.log\n";
+  Buffer.add_string b "#   in case of test failure.\n";
+  Printf.bprintf b "captured_files = [ %s ]\n"
+    ( String.concat ", "
+        ( List.map (Printf.sprintf "%S") p.project_captured_files )) ;
   Buffer.add_char b '\n';
 
   Buffer.contents b

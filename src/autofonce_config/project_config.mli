@@ -11,7 +11,8 @@
 (**************************************************************************)
 
 val from_file : string -> Types.project_config
-val from_string : ?computed:bool -> file:string -> string -> Types.project_config
+val from_string : ?computed:bool -> file:string -> string ->
+  Types.project_config
 
 val to_string : Types.project_config -> string
 val to_file : Types.project_config -> unit

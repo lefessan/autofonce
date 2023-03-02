@@ -33,9 +33,15 @@ let command ?on_error fmt =
         Printf.eprintf "  returned error %d\n%!" retcode;
         match on_error with
         | None -> ()
-        | Some f -> f retcode
+        | Some f -> f cmd retcode
       end
     ) fmt
+
+let command_exn fmt =
+  let on_error cmd retcode =
+    ERROR.raise "external command %S failed with code %d" cmd retcode
+  in
+  command ~on_error fmt
 
 let tmpfile () =
   Filename.temp_file "tmpfile" ".tmp"

@@ -83,20 +83,18 @@ let test_is_skipped_fail cer s =
       ( Parser.name_of_loc check.check_loc ) s
   )
 
-let test_is_failed cer s =
-  let ter = cer.checker_tester in
+let test_is_failed loc ter s =
   let state = ter.tester_state in
-  let check = cer.checker_check in
   if ter.tester_fail_expected then begin
     state.state_tests_failexpected <- ter :: state.state_tests_failexpected ;
     if not !keep_skipped then Misc.remove_rec ( tester_dir ter ) ;
     buffer_test state
       ( test_status ter "EXPECTED FAIL (%s %s)"
-          ( Parser.name_of_loc check.check_loc ) s )
+          ( Parser.name_of_loc loc ) s )
   end else begin
     state.state_tests_failed <- ter :: state.state_tests_failed ;
     let status =
-      test_status ter "FAIL (%s %s)" ( Parser.name_of_loc check.check_loc ) s
+      test_status ter "FAIL (%s %s)" ( Parser.name_of_loc loc ) s
     in
     output state "%s" status;
     buffer_test state status;
@@ -115,16 +113,79 @@ let exec_action_no_check ter action =
   match action with
   | AT_DATA { file ; content } ->
       EzFile.write_file ( tester_dir ter // file ) content
-  | AT_CHECK _job -> assert false
   | AT_CLEANUP _ -> ()
   | AT_XFAIL -> ter.tester_fail_expected <- true
   | AT_ENV env -> ter.tester_renvs <- env :: ter.tester_renvs
   | AT_CAPTURE_FILE file ->
-      if (Sys.file_exists file) then ()
-  (* TODO: save file in log in case of failure *)
-  | _ ->
+      ter.tester_captured_files <- StringSet.add file ter.tester_captured_files
+  | AT_SKIP
+  | AT_FAIL
+  | AT_XFAIL_IF _
+  | AT_SKIP_IF _
+  | AT_FAIL_IF _
+  | AT_CHECK _
+  | AT_COPY _
+  | AT_LINK _
+    ->
       Printf.kprintf failwith "exec_action: %s not implemented"
         ( string_of_action action )
+
+let check_of_AT_XFAIL_IF ter check_step check_loc check_command =
+  {
+    check_step ;
+    check_kind = "XFAILIF" ;
+    check_command ;
+    check_loc ;
+    check_retcode = Some 1 ;
+    check_stdout = Ignore ;
+    check_stderr = Ignore ;
+    check_test = ter.tester_test;
+    check_run_if_pass = [] ;
+    check_run_if_fail = [ AT_XFAIL ] ;
+  }
+
+let check_of_AT_SKIP_IF ter check_step check_loc check_command =
+  {
+    check_step ;
+    check_kind = "SKIPIF" ;
+    check_command ;
+    check_loc ;
+    check_retcode = Some 1 ;
+    check_stdout = Ignore ;
+    check_stderr = Ignore ;
+    check_test = ter.tester_test;
+    check_run_if_pass = [] ;
+    check_run_if_fail = [ AT_SKIP ] ;
+  }
+
+let check_of_AT_FAIL_IF ter check_step check_loc check_command =
+  {
+    check_step ;
+    check_kind = "FAILIF" ;
+    check_command ;
+    check_loc ;
+    check_retcode = Some 1 ;
+    check_stdout = Ignore ;
+    check_stderr = Ignore ;
+    check_test = ter.tester_test;
+    check_run_if_pass = [] ;
+    check_run_if_fail = [ AT_FAIL ] ;
+  }
+
+
+let check_of_at_file ter ~copy check_step check_loc check_command =
+  {
+    check_step ;
+    check_kind = if copy then "COPY" else "LINK";
+    check_command ;
+    check_loc ;
+    check_retcode = Some 0 ;
+    check_stdout = Ignore ;
+    check_stderr = Ignore ;
+    check_test = ter.tester_test;
+    check_run_if_pass = [] ;
+    check_run_if_fail = [] ;
+  }
 
 
 let print_ntests n list =
@@ -139,7 +200,7 @@ let print_ntests n list =
    status reste 40
 *)
 let print_status state =
-  if not state.state_status_printed then begin
+  if Terminal.isatty && not state.state_status_printed then begin
     Terminal.move_bol ();
     Terminal.erase Eol;
     Terminal.printf [] " %d / %d" state.state_ntests_ran state.state_ntests;
@@ -164,6 +225,7 @@ let start_test state t =
     tester_suite = c ;
     tester_renvs = [] ;
     tester_fail_expected = false ;
+    tester_captured_files = StringSet.empty ;
   }
   in
   let test_dir = tester_dir ter in
@@ -286,7 +348,8 @@ let check_failures cer retcode =
   @
   compare check.check_stderr check_stderr "stderr"
 
-let create_state state_run_dir p tc suite =
+let create_state p tc suite =
+  let state_run_dir = p.project_run_dir in
   Unix.chdir state_run_dir;
   { state_suite = suite ;
     state_config = tc ;

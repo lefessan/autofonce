@@ -27,10 +27,10 @@ let todo = ref diff
 let comment = ref true
 let not_exit = ref false
 
-let promote rundir p tc suite =
-  only_failed := true ;
+let promote p tc suite =
+  Filter.only_failed := true ;
   Patch_lines.reset ();
-  let state = Runner_common.create_state rundir p tc suite in
+  let state = Runner_common.create_state p tc suite in
   Unix.chdir state.state_run_dir ;
   let comment_line =
     let t = Unix.gettimeofday () in
@@ -73,97 +73,127 @@ let promote rundir p tc suite =
       let check_dir = Runner_common.check_dir check in
       let check_prefix = check_dir // Runner_common.check_prefix check in
       Printf.bprintf b "%s" ( Parser.m4_escape check.check_command );
-      let continue =
-        let check_exit = Printf.sprintf "%s.exit" check_prefix in
-        if Sys.file_exists check_exit then
-          let s = EzFile.read_file check_exit in
-          let retcode = int_of_string s in
-          if !not_exit then
-            match check.check_retcode with
-            | None -> false
-            | Some old_retcode ->
-                Printf.bprintf b ",\n# EXIT WITH %d\n[%d]"
-                  retcode old_retcode ;
-                true
-          else begin
-            Printf.bprintf b ", [%d]" retcode;
-            true
-          end
-        else
+      (* AT_CHECK can be used as a 'if', in which case either
+         run-if-pass or run-if-fail is not empty. Otherwise,
+         the check must pass after promotion.
+      *)
+      if
+        check.check_run_if_pass = [] && check.check_run_if_fail = []
+      then begin
+
+        begin
+          let retcode =
+            if !not_exit then check.check_retcode
+            else
+              match check.check_retcode with
+              | None -> None
+              | Some old_retcode ->
+                  let check_exit = Printf.sprintf "%s.exit" check_prefix in
+                  if Sys.file_exists check_exit then
+                    let s = EzFile.read_file check_exit in
+                    let retcode = int_of_string s in
+                    Some retcode
+                  else
+                    Some old_retcode
+          in
+          match retcode with
+          | None ->
+              Printf.bprintf b ", [ignore]"
+          | Some retcode ->
+              if retcode <> 0 then
+                Printf.bprintf b ", [%d]" retcode
+              else
+                match check.check_stdout, check.check_stderr with
+                | Ignore, Ignore -> ()
+                | _ ->
+                    Printf.bprintf b ", [%d]" retcode;
+        end;
+
+        begin
+          let stdout =
+            match check.check_stdout with
+            | Ignore -> Ignore
+            | Content old_content ->
+                let check_stdout = Printf.sprintf "%s.out" check_prefix in
+                if Sys.file_exists check_stdout then
+                  let s = EzFile.read_file check_stdout in
+                  Content s
+                else
+                  Content old_content
+          in
+          match stdout with
+          | Content old_content ->
+              Printf.bprintf b ", %s" (Parser.m4_escape old_content)
+          | Ignore ->
+              match check.check_stderr with
+              | Ignore -> ()
+              | _ ->
+                  Printf.bprintf b ", [ignore]"
+        end;
+
+        begin
+          let stderr =
+            match check.check_stderr with
+            | Ignore -> Ignore
+            | Content old_content ->
+                let check_stderr = Printf.sprintf "%s.err" check_prefix in
+                if Sys.file_exists check_stderr then
+                  let s = EzFile.read_file check_stderr in
+                  Content s
+                else
+                  Content old_content
+          in
+          match stderr with
+          | Ignore -> ()
+          | Content content ->
+              Printf.bprintf b ", %s" (Parser.m4_escape content)
+        end;
+
+      end else begin (* no promotion of this test, only internal ones *)
+
+        begin
           match check.check_retcode with
-          | None -> false
+          | None ->
+              Printf.bprintf b ", [ignore]"
           | Some retcode ->
               Printf.bprintf b ", [%d]" retcode;
-              true
-      in
-      let continue =
-        continue &&
-        match check.check_stdout with
-        | Ignore ->
-            if check.check_stderr = Ignore &&
-               check.check_run_if_pass = [] &&
-               check.check_run_if_fail = [] then
-              false
-            else begin
-              Printf.bprintf b ", [ignore]";
-              true
-            end
-        | Content old_content ->
-            let check_stdout = Printf.sprintf "%s.out" check_prefix in
-            if Sys.file_exists check_stdout then
-              let s = EzFile.read_file check_stdout in
-              Printf.bprintf b ", %s" (Parser.m4_escape s);
-              true
-            else begin
-              Printf.bprintf b ", %s" (Parser.m4_escape old_content);
-              true
-            end
-      in
-      let continue =
-        continue &&
-        match check.check_stderr with
-        | Ignore ->
-            if check.check_run_if_pass = [] &&
-               check.check_run_if_fail = [] then
-              false
-            else begin
-              Printf.bprintf b ", [ignore]";
-              true
-            end
-        | Content old_content ->
-            let check_stderr = Printf.sprintf "%s.err" check_prefix in
-            if Sys.file_exists check_stderr then
-              let s = EzFile.read_file check_stderr in
-              Printf.bprintf b ", %s" (Parser.m4_escape s);
-              true
-            else begin
-              Printf.bprintf b ", %s" (Parser.m4_escape old_content);
-              true
-            end
-      in
-      let continue =
-        continue &&
-        match check.check_run_if_fail with
-        | [] ->
-            if check.check_run_if_pass = [] then
-              false
-            else begin
-              Printf.bprintf b ", []";
-              true
-            end
-        | actions ->
-            Printf.bprintf b ", [\n";
-            print_actions actions;
-            Printf.bprintf b "]";
-            true
-      in
-      if continue then
-        match check.check_run_if_pass with
-        | [] -> ()
-        | actions ->
-            Printf.bprintf b ", [\n";
-            print_actions actions;
-            Printf.bprintf b "]"
+        end;
+
+        begin
+          match check.check_stdout with
+          | Ignore ->
+              Printf.bprintf b ", [ignore]"
+          | Content content ->
+              Printf.bprintf b ", %s" (Parser.m4_escape content)
+        end;
+
+        begin
+          match check.check_stderr with
+          | Ignore ->
+              Printf.bprintf b ", [ignore]"
+          | Content content ->
+              Printf.bprintf b ", %s" (Parser.m4_escape content)
+        end;
+
+        begin
+          match check.check_run_if_fail with
+          | [] ->
+              Printf.bprintf b ", []"
+          | actions ->
+              Printf.bprintf b ", [\n";
+              print_actions actions;
+              Printf.bprintf b "]";
+        end;
+
+        begin
+          match check.check_run_if_pass with
+          | [] -> ()
+          | actions ->
+              Printf.bprintf b ", [\n";
+              print_actions actions;
+              Printf.bprintf b "]"
+        end
+      end
 
     and print_action action =
       match action with
@@ -181,7 +211,23 @@ let promote rundir p tc suite =
       | AT_XFAIL ->
           Printf.bprintf b "AT_XFAIL_IF([true])\n"
       | AT_SKIP ->
-          Buffer.add_string b "AT_SKIP([true])\n"
+          Buffer.add_string b "AT_SKIP_IF([true])\n"
+      | AT_FAIL ->
+          Buffer.add_string b "AT_FAIL_IF([true])\n"
+      | AT_XFAIL_IF { command ; _ } ->
+          Printf.bprintf b "AT_XFAIL_IF([%s])\n" ( Parser.m4_escape command )
+      | AT_SKIP_IF { command ; _ } ->
+          Printf.bprintf b "AT_SKIP_IF([%s])\n" ( Parser.m4_escape command )
+      | AT_FAIL_IF { command ; _ } ->
+          Printf.bprintf b "AT_FAIL_IF([%s])\n" ( Parser.m4_escape command )
+      | AT_COPY { files ; _ } ->
+          Printf.bprintf b "AT_COPY([%s])\n"
+            ( String.concat "],["
+                ( List.map Parser.m4_escape files ))
+      | AT_LINK { files ; _ } ->
+          Printf.bprintf b "AT_LINK([%s])\n"
+            ( String.concat "],["
+                ( List.map Parser.m4_escape files ))
       | AT_CHECK  check ->
           Buffer.add_string b "AT_CHECK(";
           print_check check ;
@@ -219,16 +265,16 @@ let args auto_promote_arg = [
 
 ]
 
-let rec action rundir p tc suite =
-  promote rundir p tc suite ;
+let rec action p tc suite =
+  promote p tc suite ;
   if !auto_promote > 0 then begin
-    only_failed := true ;
+    Filter.only_failed := true ;
     clean_tests_dir := false ;
-    let n = Testsuite.exec rundir p tc suite in
+    let n = Testsuite.exec p tc suite in
     decr auto_promote;
     if n>0 then
-      let (rundir, p, tc, suite) = Testsuite.read rundir p tc in
-      action rundir p tc suite
+      let (p, tc, suite) = Testsuite.read p tc in
+      action p tc suite
   end
 
 let cmd =
@@ -253,8 +299,8 @@ let cmd =
   EZCMD.sub
     "promote"
     (fun () ->
-       let rundir, p, tc, suite = Testsuite.find () in
-       action rundir p tc suite
+       let p, tc, suite = Testsuite.find () in
+       action p tc suite
     )
     ~args
     ~doc: "Promote tests results as expected results"

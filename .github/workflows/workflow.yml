@@ -75,10 +75,22 @@ jobs:
 
       - name: run test suite
         run: |
-          ./scripts/before.sh test
-          opam exec -- dune build @runtest
-          ./scripts/after.sh test
+          ./autofonce run
         if: matrix.skip_test  != 'true'
+
+      - name: Upload results.log
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: testsuite-${{ matrix.os }}-${{ matrix.ocaml-compiler }}.log
+          path: _build/_autofonce/results.log
+
+      - name: Upload _autofonce/
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: autofonce-dir-${{ matrix.os }}-${{ matrix.ocaml-compiler }}
+          path: _build/_autofonce
 
       - name: test source is well formatted
         run: make fmt

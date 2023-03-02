@@ -10,23 +10,19 @@
 (*                                                                        *)
 (**************************************************************************)
 
-val debug : bool ref
+val args :
+  (string list * Ezcmd.V2.EZCMD.TYPES.Arg.spec * Ezcmd.V2.EZCMD.TYPES.info)
+    list
 
-(* [BEGIN] The following part is similar to ocamlup:call.ml *)
+val exec :
+  Types.project_config ->
+  Types.testsuite_config -> Types.suite -> int
 
-val tmpfile : unit -> string
-val command :
-  ?on_error:(string -> int -> unit) -> ('a, unit, string, unit) format4 -> 'a
-val command_exn : ('a, unit, string, unit) format4 -> 'a
-val call :
-  ?stdout:Unix.file_descr ->
-  ?stderr:Unix.file_descr -> string list -> unit
-val call_stdout_file : ?stderr:bool -> ?file:string -> string list -> string
-val call_stdout_string : ?stderr:bool -> string list -> string
-val call_stdout_lines : ?stderr:bool -> string list -> string list
+val find :
+  unit -> Types.project_config * Types.testsuite_config * Types.suite
 
-(* [END] The preceeding part is similar to ocamlup:call.ml *)
+val print : Types.suite -> unit
 
-val create_process :
-  ?stdin:string -> ?stdout:string -> ?stderr:string -> string list -> int
-val wait_pids : unit -> int * Unix.process_status
+val read :
+  Types.project_config -> Types.testsuite_config ->
+  Types.project_config * Types.testsuite_config * Types.suite

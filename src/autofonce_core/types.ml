@@ -16,9 +16,11 @@ type check_output =
   | Ignore
   | Content of string
 
+type step = string
+
 type check = { (* variable name is `check` *)
   check_loc : location ;
-  check_step : string ;
+  check_step : step ;
   check_command : string ;
   check_retcode : int option ;
   check_stdout : check_output ;
@@ -30,18 +32,24 @@ type check = { (* variable name is `check` *)
   check_test : test ;
 }
 
-(* Actions currently unsupported:
- — Macro: AT_FAIL_IF (shell-condition)
-*)
-
 and action =
   | AT_DATA of { file:string ; content: string }
   | AT_CAPTURE_FILE of string
   | AT_XFAIL
+  | AT_XFAIL_IF of { step : step ; loc : location ; command : string }
+  | AT_FAIL
+  | AT_FAIL_IF of { step : step ; loc : location ; command : string }
   | AT_SKIP
+  | AT_SKIP_IF of { step : step ; loc : location ; command : string }
   | AT_CHECK of check
-  | AT_ENV of string
   | AT_CLEANUP of { loc : location }
+
+  (* extensions *)
+  | AT_ENV of string
+  | AT_COPY of { step : step ; loc : location ;
+                 files : string list ; command : string }
+  | AT_LINK of { step : step ; loc : location ;
+                 files : string list ; command : string }
 
 and test = { (* variable name is `t` *)
   test_suite : suite ;
@@ -75,13 +83,26 @@ let rec string_of_action = function
   | AT_CAPTURE_FILE string ->
       Printf.sprintf "AT_CAPTURE_FILE %s" string
   | AT_XFAIL -> "AT_XFAIL_IF([true])"
-  | AT_SKIP -> "AT_SKIP([true])"
-  | AT_ENV env ->
-      Printf.sprintf "AT_ENV %S" env
+  | AT_SKIP -> "AT_SKIP_IF([true])"
+  | AT_FAIL -> "AT_FAIL_IF([true])"
+  | AT_XFAIL_IF { command ; _ } ->
+      Printf.sprintf "AT_XFAIL_IF([%s])" command
+  | AT_SKIP_IF { command ; _ } ->
+      Printf.sprintf "AT_SKIP_IF([%s])" command
+  | AT_FAIL_IF { command ; _ } ->
+      Printf.sprintf "AT_FAIL_IF([%s])" command
+  | AT_COPY { files ; _ } ->
+      Printf.sprintf "AT_COPY([%s])"
+        ( String.concat "],[" files )
+  | AT_LINK { files ; _ } ->
+      Printf.sprintf "AT_LINK([%s])"
+        ( String.concat "],[" files )
   | AT_CHECK  check ->
       Printf.sprintf "AT_CHECK %s" ( string_of_check check )
   | AT_CLEANUP { loc } ->
       Printf.sprintf "AT_CLEANUP %s" ( string_of_location loc )
+  | AT_ENV env ->
+      Printf.sprintf "AT_ENV %S" env
 
 and string_of_check_output = function
     | Ignore -> "IGNORE"
