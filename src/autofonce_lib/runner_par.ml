@@ -94,14 +94,10 @@ and schedule_action r action =
       let ter = r.running_test in
       schedule_check r
         ( Runner_common.check_of_AT_FAIL_IF ter step loc command )
-  | AT_COPY { step ; loc ; command ; _ } ->
+  | AT_COPY { step ; loc ; command ; copy ; _ } ->
       let ter = r.running_test in
       schedule_check r (
-        Runner_common.check_of_at_file ~copy:true ter step loc command )
-  | AT_LINK { step ; loc ; command ; _ } ->
-      let ter = r.running_test in
-      schedule_check r (
-        Runner_common.check_of_at_file ~copy:false ter step loc command )
+        Runner_common.check_of_at_file ~copy ter step loc command )
 
   | AT_XFAIL
   | AT_DATA _

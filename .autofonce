@@ -27,7 +27,7 @@ run_from = "build"
 # alias = "path-from-topdir"
 [testsuites.testsuite]
 file = "test/testsuite.at"
-path = [ "test/testsuite.src"]
+path = [ "test/testsuite.src", "test/testsuite.inc"]
 env = "testsuite"
 [testsuites.testdir]
 file = "test/testsuite.src"

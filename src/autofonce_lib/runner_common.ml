@@ -125,7 +125,6 @@ let exec_action_no_check ter action =
   | AT_FAIL_IF _
   | AT_CHECK _
   | AT_COPY _
-  | AT_LINK _
     ->
       Printf.kprintf failwith "exec_action: %s not implemented"
         ( string_of_action action )

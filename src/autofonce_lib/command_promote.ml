@@ -220,14 +220,12 @@ let promote p tc suite =
           Printf.bprintf b "AT_SKIP_IF([%s])\n" ( Parser.m4_escape command )
       | AT_FAIL_IF { command ; _ } ->
           Printf.bprintf b "AT_FAIL_IF([%s])\n" ( Parser.m4_escape command )
-      | AT_COPY { files ; _ } ->
-          Printf.bprintf b "AT_COPY([%s])\n"
-            ( String.concat "],["
-                ( List.map Parser.m4_escape files ))
-      | AT_LINK { files ; _ } ->
-          Printf.bprintf b "AT_LINK([%s])\n"
-            ( String.concat "],["
-                ( List.map Parser.m4_escape files ))
+      | AT_COPY { files ; copy ; promote ; _ } ->
+          if promote then
+            Printf.bprintf b "AT_%s([%s])\n"
+              (if copy then "COPY" else "LINK")
+              ( String.concat "],["
+                  ( List.map Parser.m4_escape files ))
       | AT_CHECK  check ->
           Buffer.add_string b "AT_CHECK(";
           print_check check ;
