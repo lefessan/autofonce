@@ -34,6 +34,8 @@
   (`AT_COPY_ALL([true])`).
 * New option `-o LOGFILE` to specify the log file
 * New command `autofonce config` to print the currently read config
+* Option `captured_files` in `autofonce.toml` to include some project files
+  in `results.log`
 
 ## v0.7 ( 2023-02-09 )
 
