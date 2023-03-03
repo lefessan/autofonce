@@ -48,6 +48,7 @@ type state = {
   keep_files : keep_files ;
   env_acc : string ;
   banner : string ;
+  subst : string list ;
 }
 
 let bool_of_string bool macro =
@@ -146,6 +147,11 @@ let load_file ~dirs ~keep_files ~path c filename =
               let s = { s with keep_files } in
               iter_state s macros
 
+          | Macro ("AT_SUBST", subst) ->
+              let subst = List.map M4Parser.to_string subst in
+              let s = { s with subst } in
+              iter_state s macros
+
           | Macro ("AT_SETUP", [ name ]) ->
               c.suite_ntests <- c.suite_ntests + 1;
               let test_name = M4Parser.to_string name in
@@ -159,6 +165,7 @@ let load_file ~dirs ~keep_files ~path c filename =
                 test_keywords = [];
                 test_actions = [];
                 test_banner = s.banner ;
+                test_subst = s.subst ;
               }
               in
               let steps = ref [0] in
@@ -289,12 +296,12 @@ let load_file ~dirs ~keep_files ~path c filename =
 
       | Macro ("AT_FAIL_IF", [ test ]) ->
           let test = M4Parser.to_string test in
+          let loc = macro.loc in
           begin
             match test with
-            | "true" -> AT_FAIL
+            | "true" -> AT_FAIL { loc }
             | command ->
                 let step = next_step steps in
-                let loc = macro.loc in
                 AT_FAIL_IF { step ; loc ; command }
           end
 
@@ -468,6 +475,7 @@ let load_file ~dirs ~keep_files ~path c filename =
     env_acc = "" ;
     keep_files = keep_files ;
     banner = "" ;
+    subst = [] ;
   } in
   iter_state s macros;
   ()

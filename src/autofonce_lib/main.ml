@@ -25,6 +25,9 @@ module PROGRAM = struct
   let about = "autofonce COMMAND COMMAND-OPTIONS"
   let set_verbosity = set_verbosity
   let get_verbosity = get_verbosity
+
+  (* Use `AUTOFONCE_BACKTRACE=y autofonce run` or
+     `autofonce run -v` to get a full backtrace *)
   let backtrace_var = Some "AUTOFONCE_BACKTRACE"
   let usage = "Modern runner for GNU Autoconf testsuites"
   let version = Version.version

@@ -22,14 +22,12 @@ let failed_check job s = raise (FAILED (job.checker_tester,
                                         job.checker_check.check_loc,
                                         s))
 
-let failed_test ter s = raise (FAILED (ter,
-                                       ter.tester_test.test_loc,
-                                        s))
+let failed_test ~loc ter s = raise (FAILED (ter, loc, s))
 
 let rec exec_action_or_check ter action =
   match action with
   | AT_SKIP -> raise SKIP
-  | AT_FAIL -> failed_test ter "AT_FAIL_IF"
+  | AT_FAIL { loc } -> failed_test ~loc ter "AT_FAIL_IF"
   | AT_CHECK check -> exec_check ter check
   | AT_XFAIL_IF { step ; loc ; command } ->
       exec_check ter ( Runner_common.check_of_AT_XFAIL_IF ter step loc command )

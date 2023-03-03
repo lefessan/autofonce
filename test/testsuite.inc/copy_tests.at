@@ -166,3 +166,26 @@ is
 dir/file-in-dir.txt
 ], [])
 AT_CLEANUP
+
+
+#######################################
+#
+#             AT_SUBST([true])
+#
+#######################################
+
+AT_SUBST([AUTOFONCE],[HOME])
+
+AT_SETUP([AT_SUBST(AUTOFONCE,HOME)])
+AT_CHECK([printf "%s" $(pwd)], [0], [${AUTOFONCE_BUILD_DIR}/${AUTOFONCE_RUN_DIR}/${TEST_ID}], [])
+AT_CHECK([printf "%s" ${AUTOFONCE_SOURCE_DIR}], [0], [${AUTOFONCE_SOURCE_DIR}], [])
+AT_CHECK([printf "%s" ${AUTOFONCE_BUILD_DIR}], [0], [${AUTOFONCE_BUILD_DIR}], [])
+AT_CLEANUP
+
+AT_SUBST([HOME])
+
+AT_SETUP([AT_SUBST(HOME)])
+AT_CHECK([printf "%s" ${HOME}], [0], [${HOME}])
+AT_CLEANUP
+
+AT_SUBST([false])

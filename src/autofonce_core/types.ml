@@ -39,7 +39,7 @@ and action =
   | AT_CAPTURE_FILE of string
   | AT_XFAIL
   | AT_XFAIL_IF of { step : step ; loc : location ; command : string }
-  | AT_FAIL
+  | AT_FAIL of { loc : location  }
   | AT_FAIL_IF of { step : step ; loc : location ; command : string }
   | AT_SKIP
   | AT_SKIP_IF of { step : step ; loc : location ; command : string }
@@ -62,6 +62,7 @@ and test = { (* variable name is `t` *)
   test_id : int ;
   test_banner : string ;
   test_env : string ;
+  test_subst : string list ;
   mutable test_keywords : string list ;
   mutable test_actions : action list ;
 }
@@ -88,7 +89,7 @@ let rec string_of_action = function
       Printf.sprintf "AT_CAPTURE_FILE %s" string
   | AT_XFAIL -> "AT_XFAIL_IF([true])"
   | AT_SKIP -> "AT_SKIP_IF([true])"
-  | AT_FAIL -> "AT_FAIL_IF([true])"
+  | AT_FAIL _ -> "AT_FAIL_IF([true])"
   | AT_XFAIL_IF { command ; _ } ->
       Printf.sprintf "AT_XFAIL_IF([%s])" command
   | AT_SKIP_IF { command ; _ } ->

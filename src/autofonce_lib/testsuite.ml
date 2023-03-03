@@ -23,7 +23,6 @@ open Types
 open Globals (* toplevel references *)
 
 let testsuite = ref ( None : string option )
-let output = ref None (* full path to results.log *)
 
 let testsuite_file = ref None
 let testsuite_env = ref None (* path to env file *)
@@ -135,31 +134,6 @@ let find () =
   in
   read p tc
 
-let log_header state fmt =
-  let b = state.state_buffer in
-  Printf.kprintf (fun s ->
-      Buffer.add_string b "\n#######################################\n";
-      Printf.bprintf b    "#\n#          %50s\n#\n" s;
-      Buffer.add_string b "#######################################\n\n";
-    ) fmt
-
-let log_failed_tests _state _msg _tests = () (* TODO *)
-
-let log_captured_files state =  (* TODO *)
-  let b = state.state_buffer in
-  let p = state.state_project in
-  let dir = p.project_source_dir in
-  List.iter (fun file ->
-      log_header state "Project captured %S" file ;
-      let filename = dir // file in
-      match EzFile.read_file filename with
-      | exception exn ->
-          Printf.bprintf b "Exception while reading %S:\n  %s\n"
-            filename ( Printexc.to_string exn )
-      | file ->
-          Printf.bprintf b "\n```\n%s```\n" file
-    ) p.project_captured_files
-
 let exec p tc suite =
   MISC.set_signal_handle Sys.sigint (fun _ -> exit 2);
   MISC.set_signal_handle Sys.sigterm (fun _ -> exit 2);
@@ -223,19 +197,7 @@ let exec p tc suite =
     let buffer = Buffer.contents state.state_buffer in
     Terminal.printf [ Terminal.magenta ] "%s\n%!" buffer;
   end ;
-  begin
-    log_failed_tests state "Failures" state.state_tests_failed ;
-    log_failed_tests state "Expected Failures" state.state_tests_failed ;
-    log_captured_files state ;
-
-    let buffer_file = match !output with
-      | None -> Sys.getcwd () // tests_dir // "results.log"
-      | Some output -> output
-    in
-    let buffer = Buffer.contents state.state_buffer in
-    EzFile.write_file buffer_file buffer;
-    Printf.eprintf "File %S created with failure results\n%!" buffer_file;
-  end ;
+  Logging.log_state_buffer state ;
   List.length state.state_tests_failed
 
 let print_test _c t =
@@ -261,7 +223,7 @@ let args = [
     ~env:(EZCMD.env "AUTOFONCE_TESTSUITE")
     ~docv:"TESTSUITE" "Name of the testsuite to run (as specified in 'autofonce.toml')";
 
-  [ "o" ; "output" ], Arg.String (fun s -> output := Some s),
+  [ "o" ; "output" ], Arg.String (fun s -> Logging.output := Some s),
   EZCMD.info
     ~env:(EZCMD.env "AUTOFONCE_OUTPUT")
     ~docv:"TESTSUITE" "Path of the output file (default: _autofonce/results.log)";

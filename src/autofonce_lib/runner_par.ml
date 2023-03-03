@@ -76,10 +76,9 @@ and schedule_action r action =
   if !Globals.verbose > 1 then Printf.eprintf "schedule_action\n%!";
   match action with
   | AT_SKIP -> Runner_common.test_is_skip r.running_test
-  | AT_FAIL ->
+  | AT_FAIL { loc } ->
       (* TODO: cannot be auto-promoted, of course... *)
-      let loc = r.running_test.tester_test.test_loc in
-      Runner_common.test_is_failed loc r.running_test "FAIL_IF"
+      Runner_common.test_is_failed loc r.running_test "AT_FAIL_IF"
   | AT_CHECK check ->
       schedule_check r check
   | AT_XFAIL_IF { step ; loc ; command } ->

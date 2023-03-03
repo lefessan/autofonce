@@ -114,7 +114,8 @@ let promote p tc suite =
             match check.check_stdout with
             | Ignore -> Ignore
             | Content old_content ->
-                let check_stdout = Printf.sprintf "%s.out" check_prefix in
+                let check_stdout =
+                  Printf.sprintf "%s.out.subst" check_prefix in
                 if Sys.file_exists check_stdout then
                   let s = EzFile.read_file check_stdout in
                   Content s
@@ -136,7 +137,8 @@ let promote p tc suite =
             match check.check_stderr with
             | Ignore -> Ignore
             | Content old_content ->
-                let check_stderr = Printf.sprintf "%s.err" check_prefix in
+                let check_stderr =
+                  Printf.sprintf "%s.err.subst" check_prefix in
                 if Sys.file_exists check_stderr then
                   let s = EzFile.read_file check_stderr in
                   Content s
@@ -212,7 +214,7 @@ let promote p tc suite =
           Printf.bprintf b "AT_XFAIL_IF([true])\n"
       | AT_SKIP ->
           Buffer.add_string b "AT_SKIP_IF([true])\n"
-      | AT_FAIL ->
+      | AT_FAIL _ ->
           Buffer.add_string b "AT_FAIL_IF([true])\n"
       | AT_XFAIL_IF { command ; _ } ->
           Printf.bprintf b "AT_XFAIL_IF([%s])\n" ( Parser.m4_escape command )
