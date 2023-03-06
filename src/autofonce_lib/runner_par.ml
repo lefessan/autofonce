@@ -152,7 +152,7 @@ and job_terminated r retcode =
                 let check = cer.checker_check in
                 let ter = cer.checker_tester in
                 let loc = check.check_loc in
-                Runner_common.test_is_failed loc ter failures
+                Runner_common.test_is_failed ~check loc ter failures
           | actions ->
               r.waiting_actions <- actions :: r.waiting_actions;
               schedule_job r

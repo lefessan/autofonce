@@ -188,4 +188,4 @@ AT_SETUP([AT_SUBST(HOME)])
 AT_CHECK([printf "%s" ${HOME}], [0], [${HOME}])
 AT_CLEANUP
 
-AT_SUBST([false])
+AT_SUBST()

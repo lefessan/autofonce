@@ -83,9 +83,9 @@ let test_is_skipped_fail cer s =
       ( PARSER.name_of_loc check.check_loc ) s
   )
 
-let test_is_failed loc ter s =
+let test_is_failed loc ter ?check s =
   let state = ter.tester_state in
-  ter.tester_fail_reason <- Some ( loc, s );
+  ter.tester_fail_reason <- Some ( loc, s, check );
   if ter.tester_fail_expected then begin
     state.state_tests_failexpected <- ter :: state.state_tests_failexpected ;
     if not !keep_skipped then MISC.remove_rec ( tester_dir ter ) ;

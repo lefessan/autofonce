@@ -14,15 +14,16 @@ open EzCompat (* for IntMap *)
 
 open Types
 
-exception FAILED of tester * location * string
+exception FAILED of tester * location * string * check option
 exception SKIPPED_FAIL of checker * string
 exception SKIP
 
-let failed_check job s = raise (FAILED (job.checker_tester,
+let failed_check ?check job s = raise (FAILED (job.checker_tester,
                                         job.checker_check.check_loc,
-                                        s))
+                                        s,
+                                        check))
 
-let failed_test ~loc ter s = raise (FAILED (ter, loc, s))
+let failed_test ~loc ter s = raise (FAILED (ter, loc, s, None))
 
 let rec exec_action_or_check ter action =
   match action with
@@ -76,7 +77,7 @@ and exec_check ter check =
               if retcode = 77 then
                 raise (SKIPPED_FAIL (cer, failures))
               else
-                failed_check cer failures
+                failed_check ~check cer failures
           | actions ->
               List.iter (exec_action_or_check ter) actions
         end
@@ -91,8 +92,8 @@ let exec_test state t =
       List.iter (exec_action_or_check ter) t.test_actions;
       Runner_common.test_is_ok ter
     with
-    | FAILED (ter, loc ,s) ->
-        Runner_common.test_is_failed loc ter s
+    | FAILED (ter, loc ,s, check) ->
+        Runner_common.test_is_failed ?check loc ter s
     | SKIPPED_FAIL (job,s) ->
         Runner_common.test_is_skipped_fail job s
     | SKIP ->

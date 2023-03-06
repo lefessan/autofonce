@@ -42,7 +42,8 @@ and tester = { (* variable name is `ter` *)
   mutable tester_renvs : string list ;
   mutable tester_fail_expected : bool ;
   mutable tester_captured_files : StringSet.t ;
-  mutable tester_fail_reason : ( location * string ) option ;
+  mutable tester_fail_reason :
+    ( location * string * check option ) option ;
 }
 
 and checker = { (* variable name is `cer` *)
