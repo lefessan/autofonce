@@ -1,0 +1,4 @@
+This
+afile
+is
+dir/file-in-dir.txt
