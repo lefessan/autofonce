@@ -39,17 +39,17 @@ gen-version = "version.ml"
 # preprocess = "pps ppx_deriving_encoding"
 
 # files to skip while updating at package level
-skip = [ "main.ml" ]
+skip = ["main.ml"]
 
 # package library dependencies
 #   [dependencies]
 #   ez_file = ">=0.1 <1.3"
 #   base-unix = { libname = "unix", version = ">=base" } 
 [dependencies]
-ez_file = "0.3"
-ocplib_stuff = "0.1"
-toml = "0.7"
 autofonce_misc = "version"
+ez_file = ">=0.3"
+ocplib_stuff = ">=0.1"
+toml = ">=0.7"
 
 # package tools dependencies
 [tools]
@@ -64,5 +64,7 @@ autofonce_misc = "version"
 #  no-opam-test = "yes" 
 #  no-opam-doc = "yes" 
 #  gen-opam = "some" | "all" 
+#  dune-stanzas = "(flags (:standard (:include linking.sexp)))" 
+#  static-clibs = "unix" 
 [fields]
 # ...

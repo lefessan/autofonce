@@ -46,6 +46,7 @@ gen-version = "version.ml"
 #   ez_file = ">=0.1 <1.3"
 #   base-unix = { libname = "unix", version = ">=base" } 
 [dependencies]
+# ...
 
 # package tools dependencies
 [tools]
@@ -60,14 +61,8 @@ crunch = ">=3.2.0"
 #  no-opam-test = "yes" 
 #  no-opam-doc = "yes" 
 #  gen-opam = "some" | "all" 
+#  dune-stanzas = "(flags (:standard (:include linking.sexp)))" 
+#  static-clibs = "unix" 
 [fields]
 dune-libraries = "bigarray"
-dune-trailer = """(rule
- (target tree.ml)
- (deps
-  (source_tree files))
- (action
-  (with-stdout-to
-   %{null}
-   (run ocaml-crunch -m plain files -o %{target}))))
-"""
+dune-trailer = "(rule\n (target tree.ml)\n (deps\n  (source_tree files))\n (action\n  (with-stdout-to\n   %{null}\n   (run ocaml-crunch -m plain files -o %{target}))))\n"

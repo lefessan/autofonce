@@ -14,7 +14,7 @@ git ls-files -z | xargs -0 tar c | \
     ocamlpro/ocaml:4.12 \
     sh -uexc \
       'tar x >&2 &&
-       sudo apk add g++ openssl-libs-static bash >&2 &&
+       sudo apk add g++ openssl-libs-static bash  >&2 &&
        opam update >&2 &&
        opam switch create . ocaml-system --deps-only --locked >&2 &&
        opam exec make LINKING_MODE=static >&2 &&

@@ -44,15 +44,28 @@ let select_tests ?state select_test suite =
           ) ids;
         t
   in
-  let keyword_set =
-    match !tests_keywords with
-    | [] -> StringSet.empty
-    | ids -> StringSet.of_list ids
-  in
-  let nokeyword_set =
-    match !tests_nokeywords with
-    | [] -> StringSet.empty
-    | ids -> StringSet.of_list ids
+  let keyword_set, nokeyword_set =
+    let yes_set = ref StringSet.empty in
+    let no_set = ref StringSet.empty in
+    begin
+      match !tests_keywords with
+      | [] -> ()
+      | ids ->
+          List.iter (fun s ->
+              let len = String.length s in
+              if len>0 && s.[0] = '-' then
+                no_set := StringSet.add ( String.sub s 1 (len-1) ) !no_set
+              else
+                yes_set := StringSet.add s !yes_set
+            ) ids
+    end;
+    begin
+      match !tests_nokeywords with
+      | [] -> ()
+      | ids ->
+          no_set := StringSet.union !no_set ( StringSet.of_list ids )
+    end;
+    !yes_set, !no_set
   in
   List.iter (fun t ->
       if t.test_id >= !exec_after

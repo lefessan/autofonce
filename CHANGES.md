@@ -1,46 +1,55 @@
 
-## v0.8 ( 2023-02-?? )
+## v0.8 ( 2023-03-13 )
 
-* Fix `--no-comment` for promotion that was not used
-* Add argument `--no-exit` to `promote`, to promote everything except the
-  exit code (so that the test will still fail with `exitcode`)
-* New config option 'project.run_from' that specifies where `_autofonce/`
-  should be created: `build` for build directory (default), `source` for
-  source directory or `config` for configuration file directory
-* Support for range of test ids like `1-10` or `10-`
-* Skip macro definitions with `AC_DEFUN/m4_define`. This is currently
-  mostly done to allow the definition of: `AC_DEFUN([AT_ENV],
-  [$1])`. Print a warning for discarding the macro definition, except
-  for `AT_ENV`.
-* Add `AT_ENV([env])` as a way to define a specific environment for the test
-  (such as environment variables).
-  * At toplevel, declarations by `AT_ENV` are added in the `autofonce_env.sh`
-    file of every test.
-  * At test level, declarations are added directly in all following
-    check scripts
-* Add `AT_COPY(files)` to copy files from the test source directory to the
-    test run directory
-* Add `AT_LINK(files)`, same as `AT_COPY`, but symlink instead of copy
-* Add `AT_COPY_ALL([true|false])`. If true, used before tests, make tests
-  copy all non .at files in their directory as if `AT_COPY` had been used.
-  If false, disable copying files for following tests.
-* Add `AT_LINK_ALL()`, same as `AT_COPY_ALL`, but symlink instead of copy
-* Add a testsuite in `test/testsuite.at`
-* Implements `AT_FAIL_IF([shell-cond])`
-* Don't promote failing `AT_CHECK` with `run-if-fail` or `run-if-pass`
-* Exit with non-zero status on failed tests
-* If testsuite location is a directory instead of a file, scan all directoies
-  and sub-directories for files `*.at` containing tests, with copying enabled
-  (`AT_COPY_ALL([true])`).
-* New option `-o LOGFILE` to specify the log file
-* New command `autofonce config` to print the currently read config
-* Add `AT_SUBST(variables)` to replace occurrences of these env variables
-   in the stdout/stderr. A special case is `AUTOFONCE` that replaces
-   `${AUTOFONCE_RUN_DIR}/${TEST_ID}`, `${AUTOFONCE_BUILD_DIR}` and
-   `${AUTOFONCE_SOURCE_DIR}`.
-* Improved version of `results.log`:
+* Promotion (`promote` and `run --auto-promote`):
+  * Fix `--no-comment` for promotion that was not used
+  * Add argument `--no-exit` to `promote`, to promote everything except the
+    exit code (so that the test will still fail with `exitcode`)
+  * Don't promote failing `AT_CHECK` with `run-if-fail` or `run-if-pass`
+* Configuration file:
+  * New config option 'project.run_from' that specifies where `_autofonce/`
+    should be created: `build` for build directory (default), `source` for
+    source directory or `config` for configuration file directory
+* Command Arguments and Behavior:
+  * Support for range of test ids like `1-10` or `10-`
+  * Exit with non-zero status on failed tests
+  * If testsuite location is a directory instead of a file, scan all directoies
+    and sub-directories for files `*.at` containing tests, with copying enabled
+    (`AT_COPY_ALL([true])`).
+  * New option `-o LOGFILE` to specify the log file
+  * New command `autofonce config` to print the currently read config
+  * New options `-T <FILE.at>`, `-E <env.sh>` and `-I <path>` to describe a
+    testsuite directly from the command-line
+  * Option `-k KEYWORDS`: if a keyword starts is negated with `-`, then tests
+    matching that keyword will not be executed (same as `--not`)
+* Improved version of `_autofonce/results.log`:
   * Include all files from failed checks and honor captured files
   * New option `captured_files` in `autofonce.toml` to include some project files
+* Standard Macro Language:
+  * Implements `AT_FAIL_IF([shell-cond])`
+* Macro language extensions:
+  * Skip macro definitions with `AC_DEFUN/m4_define`. This is currently
+    mostly done to allow the definition of: `AC_DEFUN([AT_ENV],
+    [$1])`. Print a warning for discarding the macro definition, except
+    for `AT_ENV`.
+  * Add `AT_ENV([env])` as a way to define a specific environment for the test
+    (such as environment variables).
+    * At toplevel, declarations by `AT_ENV` are added in the `autofonce_env.sh`
+      file of every test.
+    * At test level, declarations are added directly in all following
+      check scripts
+  * Add `AT_COPY(files)` to copy files from the test source directory to the
+      test run directory
+  * Add `AT_LINK(files)`, same as `AT_COPY`, but symlink instead of copy
+  * Add `AT_COPY_ALL([true|false])`. If true, used before tests, make tests
+    copy all non .at files in their directory as if `AT_COPY` had been used.
+    If false, disable copying files for following tests.
+  * Add `AT_LINK_ALL()`, same as `AT_COPY_ALL`, but symlink instead of copy
+  * Add `AT_SUBST(variables)` to replace occurrences of these env variables
+    in the stdout/stderr. A special case is `AUTOFONCE` that replaces
+    `${AUTOFONCE_RUN_DIR}/${TEST_ID}`, `${AUTOFONCE_BUILD_DIR}` and
+    `${AUTOFONCE_SOURCE_DIR}`.
+* Add a testsuite in `test/testsuite.at`
 
 ## v0.7 ( 2023-02-09 )
 

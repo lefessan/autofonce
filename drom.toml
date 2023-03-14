@@ -1,5 +1,7 @@
 [project]
 drom-version = "0.1"
+share-repo = "https://github.com/OCamlPro/drom-share"
+share-version = "0.9.1"
 
 [project]
 authors = ["Fabrice Le Fessant <fabrice.le_fessant@ocamlpro.com>"]
@@ -25,26 +27,10 @@ version = "0.8"
 # homepage = "...homepage..."
 
 [project]
-description = """autofonce is a modern runner for GNU Autoconf Testsuites:
-autofonce has a limited understanding of m4 macros that appear in testsuites
-written for the GNU Autoconf testsuites, and can run such tests in a modern
-way:
-* automatic run from any directory
-* short display focusing on failed tests
-* automatic parallel execution
-* automatic promotion of tests outputs
-"""
+description = "autofonce is a modern runner for GNU Autoconf Testsuites:\nautofonce has a limited understanding of m4 macros that appear in testsuites\nwritten for the GNU Autoconf testsuites, and can run such tests in a modern\nway:\n* automatic run from any directory\n* short display focusing on failed tests\n* automatic parallel execution\n* automatic promotion of tests outputs\n"
 
 [project]
-skip = [
-     "test",
-     "tests",
-     "README.md",
-     "CHANGES.md",
-     ".github/workflows/workflow.yml",
-     "sphinx/install.rst",
-     "sphinx/index.rst",
-     "sphinx/about.rst" ]
+skip = ["@test", "tests", "README.md", "CHANGES.md", ".github/workflows/workflow.yml", "sphinx/install.rst", "sphinx/index.rst", "sphinx/about.rst"]
 
 # project-wide library dependencies (not for package-specific deps)
 [dependencies]
@@ -78,12 +64,15 @@ share-dirs = ["share"]
 # ...
 
 # project-wide fields (depends on project skeleton)
+# examples:
+#  docker-alpine-image = "ocamlpro/ocaml:4.13"
+#  dune-lang = "2.1"
+#  readme-trailer = "..."
+#  dot-gitignore-trailer = "..."
 [fields]
-dot-gitignore-trailer = """
-/autofonce-*.bin
-/gh-pages
-*.exe
-"""
+docker-alpine-image = "ocamlpro/ocaml:4.12"
+dot-gitignore-trailer = "/autofonce-*.bin\n/gh-pages\n*.exe\n"
+static-clibs = "ANSITerminal_stubs"
 
 [[package]]
 dir = "src/autofonce"
@@ -91,7 +80,7 @@ dir = "src/autofonce"
 
 [[package]]
 dir = "src/autofonce_core"
-# edit 'src/autofonce_lib/package.toml' for package-specific options
+# edit 'src/autofonce_core/package.toml' for package-specific options
 
 [[package]]
 dir = "src/autofonce_lib"
@@ -99,21 +88,21 @@ dir = "src/autofonce_lib"
 
 [[package]]
 dir = "src/autofonce_m4"
-# edit 'src/autofonce_lib/package.toml' for package-specific options
+# edit 'src/autofonce_m4/package.toml' for package-specific options
 
 [[package]]
 dir = "src/autofonce_share"
-# edit 'src/autofonce_lib/package.toml' for package-specific options
+# edit 'src/autofonce_share/package.toml' for package-specific options
 
 [[package]]
 dir = "src/autofonce_patch"
-# edit 'src/autofonce_lib/package.toml' for package-specific options
+# edit 'src/autofonce_patch/package.toml' for package-specific options
 
 [[package]]
 dir = "src/autofonce_config"
-# edit 'src/autofonce_lib/package.toml' for package-specific options
+# edit 'src/autofonce_config/package.toml' for package-specific options
 
 [[package]]
 dir = "src/autofonce_misc"
-# edit 'src/autofonce_lib/package.toml' for package-specific options
+# edit 'src/autofonce_misc/package.toml' for package-specific options
 
