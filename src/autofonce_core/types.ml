@@ -47,8 +47,8 @@ and action =
   | AT_CLEANUP of { loc : location }
 
   (* extensions *)
-  | AT_ENV of string
-  | AT_COPY of { step : step ; loc : location ;
+  | AF_ENV of string
+  | AF_COPY of { step : step ; loc : location ;
                  files : string list ;
                  command : string ;
                  copy : bool ; (* copy or link ? *)
@@ -96,8 +96,8 @@ let rec string_of_action = function
       Printf.sprintf "AT_SKIP_IF([%s])" command
   | AT_FAIL_IF { command ; _ } ->
       Printf.sprintf "AT_FAIL_IF([%s])" command
-  | AT_COPY { files ; copy ; promote ; _ } ->
-      Printf.sprintf "AT_%s%s([%s])"
+  | AF_COPY { files ; copy ; promote ; _ } ->
+      Printf.sprintf "AF_%s%s([%s])"
         (if copy then "COPY" else "LINK")
         (if promote then "" else "_ALL")
         ( String.concat "],[" files )
@@ -105,8 +105,8 @@ let rec string_of_action = function
       Printf.sprintf "AT_CHECK %s" ( string_of_check check )
   | AT_CLEANUP { loc } ->
       Printf.sprintf "AT_CLEANUP %s" ( string_of_location loc )
-  | AT_ENV env ->
-      Printf.sprintf "AT_ENV %S" env
+  | AF_ENV env ->
+      Printf.sprintf "AF_ENV %S" env
 
 and string_of_check_output = function
     | Ignore -> "IGNORE"

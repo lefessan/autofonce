@@ -85,7 +85,7 @@ let load_file ~dirs ~keep_files ~path c filename =
               in
               let new_macros = load_file filename in
 
-              (* AT_ENV and AT_COPY_ALL should not be propagated outside, so
+              (* AF_ENV and AF_COPY_ALL should not be propagated outside, so
                  use two different calls *)
               iter new_macros ;
               iter macros
@@ -95,39 +95,39 @@ let load_file ~dirs ~keep_files ~path c filename =
               let macro_value = M4Parser.to_string macro_value in
               begin
                 match macro_name, macro_value with
-                | "AT_ENV", "$1" -> ()
+                | "AF_ENV", "$1" -> ()
                 | _ ->
                     Printf.eprintf
                       "At %s:\n  Discarding macro definition of %S\n%!"
                       (M4Printer.string_of_location macro.loc) macro_name;
               end;
               iter macros
-          | Macro ("AT_COPYRIGHT", [ copyright ]) ->
+          | Macro ( ( "AF_COPYRIGHT" | "AT_COPYRIGHT" ), [ copyright ]) ->
               let copyright = M4Parser.to_string copyright in
               c.suite_copyright <- copyright ;
               iter macros
-          | Macro ("AT_ENV", [ env ]) ->
+          | Macro ( ( "AF_ENV" | "AT_ENV" ) , [ env ]) ->
               let env = M4Parser.to_string env in
               let env_acc = Printf.sprintf "%s\n%s" s.env_acc env in
               iter_state { s with env_acc } macros
-          | Macro ("AT_INIT", [ name ]) ->
+          | Macro ( ( "AF_INIT" | "AT_INIT" ) , [ name ]) ->
               let name = M4Parser.to_string name in
               c.suite_name <- name ;
               iter macros
-          | Macro ("AT_COLOR_TESTS", [ ]) ->
+          | Macro ( ( "AF_COLOR_TESTS" | "AT_COLOR_TESTS" ), [ ]) ->
               iter macros
-          | Macro ("AT_TESTED", [ tested ]) ->
+          | Macro ( ( "AF_TESTED" | "AT_TESTED" ) , [ tested ]) ->
               let tested = M4Parser.to_string tested in
               c.suite_tested_programs <- c.suite_tested_programs @
                                          EzString.split_simplify tested ' ';
               iter macros
-          | Macro ("AT_BANNER", [ banner ]) ->
+          | Macro ( ( "AF_BANNER" | "AT_BANNER" ), [ banner ]) ->
               let banner = M4Parser.to_string banner in
               c.suite_banners <- banner :: c.suite_banners ;
               let s = { s with banner } in
               iter_state s macros
 
-          | Macro ("AT_COPY_ALL", [ bool ]) ->
+          | Macro ( ( "AF_COPY_ALL" | "AT_COPY_ALL" ), [ bool ]) ->
               let bool = M4Parser.to_string bool in
               let keep_files = bool_of_string bool macro in
               let keep_files =
@@ -137,7 +137,7 @@ let load_file ~dirs ~keep_files ~path c filename =
               let s = { s with keep_files } in
               iter_state s macros
 
-          | Macro ("AT_LINK_ALL", [ bool ]) ->
+          | Macro ( ( "AF_LINK_ALL" | "AT_LINK_ALL" ), [ bool ]) ->
               let bool = M4Parser.to_string bool in
               let keep_files = bool_of_string bool macro in
               let keep_files =
@@ -147,12 +147,12 @@ let load_file ~dirs ~keep_files ~path c filename =
               let s = { s with keep_files } in
               iter_state s macros
 
-          | Macro ("AT_SUBST", subst) ->
+          | Macro ( ( "AF_SUBST" | "AT_SUBST" ), subst) ->
               let subst = List.map M4Parser.to_string subst in
               let s = { s with subst } in
               iter_state s macros
 
-          | Macro ("AT_SETUP", [ name ]) ->
+          | Macro ( ( "AF_SETUP" | "AT_SETUP" ), [ name ]) ->
               c.suite_ntests <- c.suite_ntests + 1;
               let test_name = M4Parser.to_string name in
               let test_id = c.suite_ntests in
@@ -209,13 +209,13 @@ let load_file ~dirs ~keep_files ~path c filename =
       | macro :: macros ->
           match macro.kind with
 
-          | Macro ("AT_KEYWORDS", [ keywords]) ->
+          | Macro ( ( "AF_KEYWORDS" | "AT_KEYWORDS" ), [ keywords]) ->
               let keywords = M4Parser.to_string keywords in
               t.test_keywords <- t.test_keywords
                                  @ EzString.split_simplify keywords ' ';
               iter_actions t steps actions macros
 
-          | Macro ("AT_CLEANUP", [] ) ->
+          | Macro ( ( "AF_CLEANUP" | "AT_CLEANUP" ) , [] ) ->
               macros,
               List.rev ( AT_CLEANUP { loc = macro.loc } :: actions )
 
@@ -263,16 +263,16 @@ let load_file ~dirs ~keep_files ~path c filename =
 
     and parse_action t steps macro =
       match macro.kind with
-      | Macro ("AT_DATA", [ file ; content]) ->
+      | Macro ( ( "AF_DATA" | "AT_DATA" ) , [ file ; content]) ->
           let file = M4Parser.to_string file in
           let content = M4Parser.to_string content in
           AT_DATA  { file ; content }
 
-      | Macro ("AT_CAPTURE_FILE", [ file ] ) ->
+      | Macro ( ( "AF_CAPTURE_FILE" | "AT_CAPTURE_FILE" ) , [ file ] ) ->
           let file = M4Parser.to_string file in
           AT_CAPTURE_FILE  file
 
-      | Macro ("AT_XFAIL_IF", [ test ]) ->
+      | Macro ( ( "AF_XFAIL_IF" | "AT_XFAIL_IF" ) , [ test ]) ->
           let test = M4Parser.to_string test in
           begin
             match test with
@@ -283,7 +283,7 @@ let load_file ~dirs ~keep_files ~path c filename =
                 AT_XFAIL_IF { step ; loc ; command }
           end
 
-      | Macro ("AT_SKIP_IF", [ test ]) ->
+      | Macro ( ( "AF_SKIP_IF" | "AT_SKIP_IF" ) , [ test ]) ->
           let test = M4Parser.to_string test in
           begin
             match test with
@@ -294,7 +294,7 @@ let load_file ~dirs ~keep_files ~path c filename =
                 AT_SKIP_IF { step ; loc ; command }
           end
 
-      | Macro ("AT_FAIL_IF", [ test ]) ->
+      | Macro ( ( "AF_FAIL_IF" | "AT_FAIL_IF" ), [ test ]) ->
           let test = M4Parser.to_string test in
           let loc = macro.loc in
           begin
@@ -305,7 +305,7 @@ let load_file ~dirs ~keep_files ~path c filename =
                 AT_FAIL_IF { step ; loc ; command }
           end
 
-      | Macro ("AT_CHECK", args ) ->
+      | Macro ( ( "AF_CHECK" | "AT_CHECK" ), args ) ->
           let check_loc = macro.loc in
           let check_command, args =
             match args with
@@ -402,14 +402,14 @@ let load_file ~dirs ~keep_files ~path c filename =
           }
 
       (* Extensions *)
-      | Macro ("AT_ENV", [ env ] ) ->
-          AT_ENV ( M4Parser.to_string env )
+      | Macro ( ( "AF_ENV" | "AT_ENV" ), [ env ] ) ->
+          AF_ENV ( M4Parser.to_string env )
 
-      | Macro ("AT_COPY", files ) ->
+      | Macro ( ( "AF_COPY" | "AT_COPY" ), files ) ->
           let files = List.map M4Parser.to_string files in
           at_file steps macro ~copy:true files
 
-      | Macro ("AT_LINK", files ) ->
+      | Macro ( ( "AF_LINK" | "AT_LINK" ), files ) ->
           let files = List.map M4Parser.to_string files in
           at_file steps macro ~copy:false files
 
@@ -447,13 +447,13 @@ let load_file ~dirs ~keep_files ~path c filename =
                 let filename = dir // file in
                 if not (Sys.file_exists filename ) then
                   M4Parser.macro_error macro
-                    "AT_COPY: file %S does not exist" filename;
+                    "AF_COPY: file %S does not exist" filename;
                 let basename = Filename.basename file in
                 begin
                   match basename with
                   | "." | ".." ->
                       M4Parser.macro_error macro
-                        "AT_%s file %s has no basename"
+                        "AF_%s file %s has no basename"
                         check_kind
                         file
                   | _ ->
@@ -466,7 +466,7 @@ let load_file ~dirs ~keep_files ~path c filename =
       in
       let step = next_step steps in
       let loc = macro.loc in
-      AT_COPY { step ; loc ; command ; files ; copy ; promote }
+      AF_COPY { step ; loc ; command ; files ; copy ; promote }
     in
     iter macros
   in

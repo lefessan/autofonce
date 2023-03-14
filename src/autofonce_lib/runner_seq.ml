@@ -36,7 +36,7 @@ let rec exec_action_or_check ter action =
       exec_check ter ( Runner_common.check_of_AT_SKIP_IF ter step loc command )
   | AT_FAIL_IF { step ; loc ; command } ->
       exec_check ter ( Runner_common.check_of_AT_FAIL_IF ter step loc command )
-  | AT_COPY { step ; loc ; command ; copy ; _ } ->
+  | AF_COPY { step ; loc ; command ; copy ; _ } ->
       exec_check ter (
         Runner_common.check_of_at_file ~copy ter step loc command )
 
@@ -44,7 +44,7 @@ let rec exec_action_or_check ter action =
   | AT_DATA _
   | AT_CAPTURE_FILE _
   | AT_CLEANUP _
-  | AT_ENV _
+  | AF_ENV _
     ->
       Runner_common.exec_action_no_check ter action
 

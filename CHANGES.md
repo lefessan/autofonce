@@ -27,25 +27,29 @@
   * New option `captured_files` in `autofonce.toml` to include some project files
 * Standard Macro Language:
   * Implements `AT_FAIL_IF([shell-cond])`
-* Macro language extensions:
+  * To conform with namespace rules for `autoconf`, all macros are supported
+    with both a `AT_` and `AF_` prefix, and `autofonce` will promote `autofonce`
+    specific macros with the `AF_` prefix, while using the `AT_` prefix for
+    `autoconf` compatible macros
+* Macro language extensions (default is `AF_`, but `AT_` is accepted:
   * Skip macro definitions with `AC_DEFUN/m4_define`. This is currently
-    mostly done to allow the definition of: `AC_DEFUN([AT_ENV],
+    mostly done to allow the definition of: `AC_DEFUN([AF_ENV],
     [$1])`. Print a warning for discarding the macro definition, except
-    for `AT_ENV`.
-  * Add `AT_ENV([env])` as a way to define a specific environment for the test
+    for `AF_ENV`.
+  * Add `AF_ENV([env])` as a way to define a specific environment for the test
     (such as environment variables).
-    * At toplevel, declarations by `AT_ENV` are added in the `autofonce_env.sh`
+    * At toplevel, declarations by `AF_ENV` are added in the `autofonce_env.sh`
       file of every test.
     * At test level, declarations are added directly in all following
       check scripts
-  * Add `AT_COPY(files)` to copy files from the test source directory to the
+  * Add `AF_COPY(files)` to copy files from the test source directory to the
       test run directory
-  * Add `AT_LINK(files)`, same as `AT_COPY`, but symlink instead of copy
-  * Add `AT_COPY_ALL([true|false])`. If true, used before tests, make tests
-    copy all non .at files in their directory as if `AT_COPY` had been used.
+  * Add `AF_LINK(files)`, same as `AF_COPY`, but symlink instead of copy
+  * Add `AF_COPY_ALL([true|false])`. If true, used before tests, make tests
+    copy all non .at files in their directory as if `AF_COPY` had been used.
     If false, disable copying files for following tests.
-  * Add `AT_LINK_ALL()`, same as `AT_COPY_ALL`, but symlink instead of copy
-  * Add `AT_SUBST(variables)` to replace occurrences of these env variables
+  * Add `AF_LINK_ALL()`, same as `AF_COPY_ALL`, but symlink instead of copy
+  * Add `AF_SUBST(variables)` to replace occurrences of these env variables
     in the stdout/stderr. A special case is `AUTOFONCE` that replaces
     `${AUTOFONCE_RUN_DIR}/${TEST_ID}`, `${AUTOFONCE_BUILD_DIR}` and
     `${AUTOFONCE_SOURCE_DIR}`.

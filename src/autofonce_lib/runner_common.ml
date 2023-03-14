@@ -116,7 +116,7 @@ let exec_action_no_check ter action =
       EzFile.write_file ( tester_dir ter // file ) content
   | AT_CLEANUP _ -> ()
   | AT_XFAIL -> ter.tester_fail_expected <- true
-  | AT_ENV env -> ter.tester_renvs <- env :: ter.tester_renvs
+  | AF_ENV env -> ter.tester_renvs <- env :: ter.tester_renvs
   | AT_CAPTURE_FILE file ->
       ter.tester_captured_files <- StringSet.add file ter.tester_captured_files
   | AT_SKIP
@@ -125,7 +125,7 @@ let exec_action_no_check ter action =
   | AT_SKIP_IF _
   | AT_FAIL_IF _
   | AT_CHECK _
-  | AT_COPY _
+  | AF_COPY _
     ->
       Printf.kprintf failwith "exec_action: %s not implemented"
         ( string_of_action action )
@@ -249,7 +249,7 @@ AUTOFONCE_BUILD_DIR="%s"
 # test env by autofonce.toml
 %s
 
-# test env by AT_ENV
+# test env by AF_ENV
 %s
 |}
     state.state_config.config_name

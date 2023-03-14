@@ -93,7 +93,7 @@ and schedule_action r action =
       let ter = r.running_test in
       schedule_check r
         ( Runner_common.check_of_AT_FAIL_IF ter step loc command )
-  | AT_COPY { step ; loc ; command ; copy ; _ } ->
+  | AF_COPY { step ; loc ; command ; copy ; _ } ->
       let ter = r.running_test in
       schedule_check r (
         Runner_common.check_of_at_file ~copy ter step loc command )
@@ -102,7 +102,7 @@ and schedule_action r action =
   | AT_DATA _
   | AT_CAPTURE_FILE _
   | AT_CLEANUP _
-  | AT_ENV _
+  | AF_ENV _
     ->
       Runner_common.exec_action_no_check r.running_test action;
       schedule_job r
