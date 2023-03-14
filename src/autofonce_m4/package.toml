@@ -23,7 +23,7 @@ gen-version = "version.ml"
 
 # supported file generators are "ocamllex", "ocamlyacc" and "menhir" 
 # default is [ "ocamllex", "ocamlyacc" ] 
-generators = [ "ocamllex" ]
+generators = ["ocamllex"]
 
 # whether all modules should be packed/wrapped (default is true)
 # pack-modules = false
@@ -39,16 +39,16 @@ generators = [ "ocamllex" ]
 # preprocess = "pps ppx_deriving_encoding"
 
 # files to skip while updating at package level
-skip = [ "main.ml" ]
+skip = ["main.ml"]
 
 # package library dependencies
 #   [dependencies]
 #   ez_file = ">=0.1 <1.3"
 #   base-unix = { libname = "unix", version = ">=base" } 
 [dependencies]
-ez_file = "0.3"
-ocplib_stuff = "0.1"
 autofonce_misc = "version"
+ez_file = ">=0.3"
+ocplib_stuff = ">=0.1"
 
 # package tools dependencies
 [tools]
@@ -63,5 +63,7 @@ autofonce_misc = "version"
 #  no-opam-test = "yes" 
 #  no-opam-doc = "yes" 
 #  gen-opam = "some" | "all" 
+#  dune-stanzas = "(flags (:standard (:include linking.sexp)))" 
+#  static-clibs = "unix" 
 [fields]
 # ...

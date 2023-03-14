@@ -39,7 +39,7 @@ gen-version = "version.ml"
 # preprocess = "pps ppx_deriving_encoding"
 
 # files to skip while updating at package level
-# skip = [ "main.ml"]
+# skip = []
 
 # package library dependencies
 #   [dependencies]
@@ -61,21 +61,7 @@ autofonce_lib = "version"
 #  no-opam-test = "yes" 
 #  no-opam-doc = "yes" 
 #  gen-opam = "some" | "all" 
+#  dune-stanzas = "(flags (:standard (:include linking.sexp)))" 
+#  static-clibs = "unix" 
 [fields]
-dune-stanzas = "(flags (:standard (:include linking.sexp)))"
-dune-trailer = """
-
-(rule
-  (targets linking.sexp)
-  (enabled_if (<> %{ocaml-config:system} mingw64))
-  (deps (file linking_flags.sh))
-  (action  (with-stdout-to %{targets}
-    (run bash linking_flags.sh linking.sexp %{env:LINKING_MODE=dynamic} %{ocaml-config:system}))))
-
-(rule
-  (targets linking.sexp)
-  (enabled_if (= %{ocaml-config:system} mingw64))
-  (deps (file linking_flags.sh))
-  (action  (with-stdout-to %{targets}
-    (run bash -c "echo '()' > linking.sexp"))))
-"""
+# ...
