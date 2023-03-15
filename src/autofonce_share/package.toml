@@ -65,4 +65,13 @@ crunch = ">=3.2.0"
 #  static-clibs = "unix" 
 [fields]
 dune-libraries = "bigarray"
-dune-trailer = "(rule\n (target tree.ml)\n (deps\n  (source_tree files))\n (action\n  (with-stdout-to\n   %{null}\n   (run ocaml-crunch -m plain files -o %{target}))))\n"
+dune-trailer = """
+(rule
+ (target tree.ml)
+ (deps
+  (source_tree files))
+ (action
+  (with-stdout-to
+   %{null}
+   (run ocaml-crunch -m plain files -o %{target}))))
+"""

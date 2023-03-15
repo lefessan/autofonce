@@ -320,6 +320,7 @@ let to_string p =
     ) p.project_envs ;
   Buffer.add_char b '\n';
 
+  Printf.bprintf b "[project]\n" ;
   Buffer.add_string b "# files to be captured into results.log\n";
   Buffer.add_string b "#   in case of test failure.\n";
   Printf.bprintf b "captured_files = [ %s ]\n"

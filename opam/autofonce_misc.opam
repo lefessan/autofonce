@@ -9,11 +9,7 @@ description: """\
 autofonce is a modern runner for GNU Autoconf Testsuites:
 autofonce has a limited understanding of m4 macros that appear in testsuites
 written for the GNU Autoconf testsuites, and can run such tests in a modern
-way:
-* automatic run from any directory
-* short display focusing on failed tests
-* automatic parallel execution
-* automatic promotion of tests outputs
+way.
 """
 authors: ["Fabrice Le Fessant <fabrice.le_fessant@ocamlpro.com>"]
 maintainer: ["Fabrice Le Fessant <fabrice.le_fessant@ocamlpro.com>"]
