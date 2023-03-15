@@ -156,7 +156,7 @@ let print_actions ~not_exit ~keep_old b actions =
         Printf.bprintf b "AT_DATA(%s,%s)\n"
           ( Parser.m4_escape file )
           ( Parser.m4_escape content )
-    | AT_ENV string ->
+    | AF_ENV string ->
         Printf.bprintf b "AT_ENV(%s)\n"
           ( Parser.m4_escape string )
     | AT_CAPTURE_FILE string ->
@@ -174,9 +174,9 @@ let print_actions ~not_exit ~keep_old b actions =
         Printf.bprintf b "AT_SKIP_IF([%s])\n" ( Parser.m4_escape command )
     | AT_FAIL_IF { command ; _ } ->
         Printf.bprintf b "AT_FAIL_IF([%s])\n" ( Parser.m4_escape command )
-    | AT_COPY { files ; copy ; promote ; _ } ->
+    | AF_COPY { files ; copy ; promote ; _ } ->
         if promote then
-          Printf.bprintf b "AT_%s([%s])\n"
+          Printf.bprintf b "AF_%s([%s])\n"
             (if copy then "COPY" else "LINK")
             ( String.concat "],["
                 ( List.map Parser.m4_escape files ))

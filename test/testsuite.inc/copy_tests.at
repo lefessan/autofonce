@@ -11,6 +11,18 @@ AT_CHECK([printf "${VAR_EXPORT}"], [0], [Exported var], [])
 AT_CHECK([printf "${VAR_INTERNAL}"], [0], [Internal var], [])
 AT_CLEANUP
 
+#######################################
+#
+#             AF_ENV
+#
+#######################################
+
+
+AF_SETUP([AF_ENV in testsuite.at])
+AF_CHECK([printf "${VAR_EXPORT}"], [0], [Exported var], [])
+AF_CHECK([printf "${VAR_INTERNAL}"], [0], [Internal var], [])
+AF_CLEANUP
+
 
 #######################################
 #

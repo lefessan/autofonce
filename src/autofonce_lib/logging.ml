@@ -122,9 +122,9 @@ let log_checks ?failed_check state ter =
     | AT_CHECK check ->
         print_check b "AT_CHECK" check
 
-    | AT_COPY _
+    | AF_COPY _
     | AT_DATA _
-    | AT_ENV _
+    | AF_ENV _
     | AT_CAPTURE_FILE _
     | AT_XFAIL
     | AT_SKIP
