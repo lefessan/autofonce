@@ -5,7 +5,7 @@
   (package autofonce)
   (libraries autofonce_lib )
   
-  
+  (flags (:standard (:include linking.sexp)))
   )
 
 ; Use `static-clibs` to specify static C libs (without lib prefix)
