@@ -82,6 +82,13 @@ let debug lexbuf =
       (Lexing.lexeme lexbuf) !opened_quotes !opened_parens
   end
 
+let quadrigraph lexbuf s =
+  if not !translate_quadrigraphs then
+    Buffer.add_string quoted_buffer ( Lexing.lexeme lexbuf)
+  else
+    Buffer.add_string quoted_buffer s
+
+
 }
 
 let upper =[ 'A'-'Z' ]
@@ -207,33 +214,13 @@ and arg = parse
 
 and unescape = parse
   | eof { () }
-  | "@<:@" { if not !translate_quadrigraphs then
-               Buffer.add_string quoted_buffer ( Lexing.lexeme lexbuf)
-             else
-               Buffer.add_char quoted_buffer '['
-             ;
-             unescape lexbuf
-           }
-  | "@:>@" { if not !translate_quadrigraphs then
-               Buffer.add_string quoted_buffer ( Lexing.lexeme lexbuf)
-             else
-               Buffer.add_char quoted_buffer ']';
-             unescape lexbuf }
-  | "@S|@" { if not !translate_quadrigraphs then
-               Buffer.add_string quoted_buffer ( Lexing.lexeme lexbuf)
-             else
-               Buffer.add_char quoted_buffer '$';
-             unescape lexbuf }
-  | "@%:@" { if not !translate_quadrigraphs then
-               Buffer.add_string quoted_buffer ( Lexing.lexeme lexbuf)
-             else
-               Buffer.add_char quoted_buffer '#';
-             unescape lexbuf }
-  | "@&t@" { if not !translate_quadrigraphs then
-               Buffer.add_string quoted_buffer ( Lexing.lexeme lexbuf)
-             else
-               ();
-             unescape lexbuf }
+  | "@<:@" { quadrigraph lexbuf "["; unescape lexbuf }
+  | "@:>@" { quadrigraph lexbuf "]"; unescape lexbuf }
+  | "@S|@" { quadrigraph lexbuf "$"; unescape lexbuf }
+  | "@%:@" { quadrigraph lexbuf "#"; unescape lexbuf }
+  | "@&t@" { quadrigraph lexbuf ""; unescape lexbuf }
+  | "@{:@" { quadrigraph lexbuf "("; unescape lexbuf }
+  | "@:}@" { quadrigraph lexbuf ")"; unescape lexbuf }
   | '\n' { Lexing.new_line lexbuf;
            Buffer.add_char quoted_buffer '\n';
            unescape lexbuf }
