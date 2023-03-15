@@ -58,3 +58,4 @@ depends: [
   "odoc" {with-doc}
   "ocamlformat" {with-test}
 ]
+# Content of `opam-trailer` field:
