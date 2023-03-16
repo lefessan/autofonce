@@ -49,7 +49,7 @@ skip = ["main.ml"]
 autofonce_misc = "version"
 ez_file = ">=0.3"
 ocplib_stuff = ">=0.1"
-toml = ">=0.7"
+toml = ">=7.0"
 
 # package tools dependencies
 [tools]

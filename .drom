@@ -5,7 +5,7 @@ version:0.9.0
 
 # hash of toml configuration files
 # used for generation of all files
-2dd91e689d115ada193a8edf736d59f0:.
+1701201eda7b53e1c6720f862c97832b:.
 # end context for .
 
 # begin context for .github/workflows/workflow.yml
@@ -70,7 +70,7 @@ e739f3026aa997af4026bc428f4c9ef6:docs/favicon.png
 
 # begin context for docs/index.html
 # file docs/index.html
-27d14ea7971aaad2a3f4a2b62afb4ed9:docs/index.html
+6a836de03374e3edc460a2df0d71b696:docs/index.html
 # end context for docs/index.html
 
 # begin context for docs/sphinx/index.html
@@ -85,7 +85,7 @@ c8281f46ba9a11d0b61bc8ef67eaa357:docs/style.css
 
 # begin context for drom.toml
 # file drom.toml
-5d1cb8d8dbd78145587e881802e09840:drom.toml
+e7379cf9741bb1cd7e4192973c166a04:drom.toml
 # end context for drom.toml
 
 # begin context for dune
@@ -95,47 +95,52 @@ c8281f46ba9a11d0b61bc8ef67eaa357:docs/style.css
 
 # begin context for dune-project
 # file dune-project
-165bc59612cad4bd055b8013eaf3a19f:dune-project
+a0e8e6090244ae72615b2eba43edc405:dune-project
 # end context for dune-project
 
 # begin context for opam/autofonce.opam
 # file opam/autofonce.opam
 0c76c9db81ced90233987ddf27043d9a:opam/autofonce.opam
+770649163c308bef1c13c349dbddd4e6:opam/autofonce.opam
 # end context for opam/autofonce.opam
 
 # begin context for opam/autofonce_config.opam
 # file opam/autofonce_config.opam
-313dfa6fb4d9f75e3af1494d74fc29ff:opam/autofonce_config.opam
+aee90ace07641b1aed4507d5db5f69e4:opam/autofonce_config.opam
 # end context for opam/autofonce_config.opam
 
 # begin context for opam/autofonce_core.opam
 # file opam/autofonce_core.opam
-7bf88645038c90b130baa877a0cb1b79:opam/autofonce_core.opam
+ae5afae05604aef8c501f8d059c315d5:opam/autofonce_core.opam
 # end context for opam/autofonce_core.opam
 
 # begin context for opam/autofonce_lib.opam
 # file opam/autofonce_lib.opam
-c04f65c38eade78c4a3b0eec529486f0:opam/autofonce_lib.opam
+65e6fcaa556e2f4a879df1f5c5776854:opam/autofonce_lib.opam
 # end context for opam/autofonce_lib.opam
 
 # begin context for opam/autofonce_m4.opam
 # file opam/autofonce_m4.opam
 dee296c3d8be32519b10ec3d21b4a7ab:opam/autofonce_m4.opam
+c7c638fc61807f1e166c6170b64f1160:opam/autofonce_m4.opam
 # end context for opam/autofonce_m4.opam
 
 # begin context for opam/autofonce_misc.opam
 # file opam/autofonce_misc.opam
 4301c268e3ca9ae292402418154eeb48:opam/autofonce_misc.opam
+0ccea5eccef5375387d0fb7fc81efe38:opam/autofonce_misc.opam
 # end context for opam/autofonce_misc.opam
 
 # begin context for opam/autofonce_patch.opam
 # file opam/autofonce_patch.opam
 80143eb0dcf1638b72c71446162ca8bb:opam/autofonce_patch.opam
+646194b2325b4ee4f681f29d03c2dbe7:opam/autofonce_patch.opam
 # end context for opam/autofonce_patch.opam
 
 # begin context for opam/autofonce_share.opam
 # file opam/autofonce_share.opam
 b2c2d33959d1b227dfe3d390df0de05d:opam/autofonce_share.opam
+71a2ea243348fc1468ea984e3224a757:opam/autofonce_share.opam
 # end context for opam/autofonce_share.opam
 
 # begin context for scripts/after.sh
@@ -210,7 +215,7 @@ ed33f77d8445636532309e3b42fcf274:src/autofonce/main.ml
 
 # begin context for src/autofonce/package.toml
 # file src/autofonce/package.toml
-628d32db10060b2409b6b7cb9af4f52b:src/autofonce/package.toml
+6b7b4cc6a11b570ad02c7e073e45f050:src/autofonce/package.toml
 # end context for src/autofonce/package.toml
 
 # begin context for src/autofonce/version.mlt
@@ -230,7 +235,7 @@ a5471d79d6ce063986a84fa3749f8cb7:src/autofonce_config/dune
 
 # begin context for src/autofonce_config/package.toml
 # file src/autofonce_config/package.toml
-57ee199ee8b71c7bbae9736bae2cfa92:src/autofonce_config/package.toml
+ab29faf4dd396c0f88290923e94bf125:src/autofonce_config/package.toml
 # end context for src/autofonce_config/package.toml
 
 # begin context for src/autofonce_config/version.mlt
@@ -240,7 +245,7 @@ a632a56ce084dfbc81795f9594ceddde:src/autofonce_config/version.mlt
 
 # begin context for src/autofonce_core/dune
 # file src/autofonce_core/dune
-59d77025a764b071d9ce880917284f8b:src/autofonce_core/dune
+3ef23704322db36c3887d7d2b6a297aa:src/autofonce_core/dune
 # end context for src/autofonce_core/dune
 
 # begin context for src/autofonce_core/index.mld

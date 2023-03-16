@@ -50,7 +50,6 @@ ANSITerminal = ">=0.8"
 autofonce_m4 = "version"
 autofonce_misc = "version"
 autofonce_share = "version"
-ez_cmdliner = ">=0.2"
 ez_file = ">=0.3"
 ocplib_stuff = ">=0.1"
 

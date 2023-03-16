@@ -4,7 +4,7 @@ opam-version: "2.0"
 name: "autofonce_m4"
 version: "0.9"
 license: "GPL-3.0-only"
-synopsis: "autofonce: modern runner for GNU Autoconf Testsuites"
+synopsis: "A modern runner for GNU Autoconf Testsuites"
 description: """\
 autofonce is a modern runner for GNU Autoconf Testsuites:
 autofonce has a limited understanding of m4 macros that appear in testsuites
