@@ -1,8 +1,15 @@
 
 ## v0.9 ( 2023-??-?? )
 
+* Improve filtering
+   * New option `--match-all` to run all tests that match ALL keywords instead
+     of the ones matching ANY keyword
+   * Add words of the test name to the test keywords
+   * Remove comment date during promotion, remove corresponding option --no-comment
+   * Transform all keywords to lowercase to match in a case-insensitive manner
+* Add some spaces between arguments during promotion
 * Support for exit code 99: fail the entire AT_CHECK without running
-  run-if-fail
+  run-if-fail actions
 
 ## v0.8 ( 2023-03-15 )
 

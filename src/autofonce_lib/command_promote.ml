@@ -22,7 +22,6 @@ open Globals
 (* TODO: check why the ignore pattern does not work *)
 let diff = Patch_lines.Diff { exclude = [ "^# promoted on .*" ]}
 let todo = ref diff
-let comment = ref true
 let not_exit = ref false
 
 let promote p tc suite =
@@ -30,6 +29,7 @@ let promote p tc suite =
   Patch_lines.reset ();
   let state = Runner_common.create_state p tc suite in
   Unix.chdir state.state_run_dir ;
+  (*
   let comment_line =
     let t = Unix.gettimeofday () in
     let tm = Unix.localtime t in
@@ -40,6 +40,7 @@ let promote p tc suite =
       tm.tm_hour
       tm.tm_min
   in
+*)
   let promote_test t =
     let file = t.test_loc.file in
     Printf.eprintf "Promoting test %d %s\n%!"
@@ -55,9 +56,6 @@ let promote p tc suite =
     let b = Buffer.create 10000 in
 
     Printf.bprintf b "AT_SETUP(%s)\n" (Parser.m4_escape t.test_name);
-
-    if !comment then
-      Printf.bprintf b "%s\n" comment_line;
 
     begin
       match t.test_keywords with
@@ -80,10 +78,6 @@ let promote p tc suite =
   ()
 
 let args auto_promote_arg = [
-
-  [ "no-comment" ], Arg.Clear comment,
-  EZCMD.info ~env:(EZCMD.env "AUTOFONCE_PROMOTE_NO_COMMENT")
-    "Do not add a comment with the promotion date";
 
   [ "not-exit" ], Arg.Set not_exit,
   EZCMD.info "Do not promote exit code" ;

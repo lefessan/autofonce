@@ -183,6 +183,17 @@ let load_file ~dirs ~keep_files ~path c filename =
               in
               let macros, actions = iter_actions t steps [] macros in
               t.test_actions <- before @ actions ;
+              let test_name = String.map (fun c ->
+                  match c with
+                  | 'a'..'z'
+                  | 'A'..'Z'
+                  | '-'
+                  | '0'..'9' -> c
+                  | _ -> ' ') t.test_name
+              in
+              t.test_keywords <- t.test_keywords
+                                 @ EzString.split_simplify test_name ' ';
+              t.test_keywords <- List.map String.lowercase_ascii t.test_keywords ;
               iter_state s macros
 
           | Macro (_, _) ->
