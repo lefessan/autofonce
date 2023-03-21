@@ -143,19 +143,25 @@ and job_terminated r retcode =
           r.waiting_actions <- check.check_run_if_pass :: r.waiting_actions;
           schedule_job r
       | failures ->
-          match check.check_run_if_fail with
-          | [] ->
-              let failures = String.concat " " failures in
-              if retcode = 77 then
-                Runner_common.test_is_skipped_fail cer failures
-              else
-                let check = cer.checker_check in
-                let ter = cer.checker_tester in
-                let loc = check.check_loc in
-                Runner_common.test_is_failed ~check loc ter failures
-          | actions ->
-              r.waiting_actions <- actions :: r.waiting_actions;
-              schedule_job r
+          let failures = String.concat " " failures in
+          if retcode = 99 then
+            let check = cer.checker_check in
+            let ter = cer.checker_tester in
+            let loc = check.check_loc in
+            Runner_common.test_is_failed ~check loc ter failures
+          else
+            match check.check_run_if_fail with
+            | [] ->
+                if retcode = 77 then
+                  Runner_common.test_is_skipped_fail cer failures
+                else
+                  let check = cer.checker_check in
+                  let ter = cer.checker_tester in
+                  let loc = check.check_loc in
+                  Runner_common.test_is_failed ~check loc ter failures
+            | actions ->
+                r.waiting_actions <- actions :: r.waiting_actions;
+                schedule_job r
 
 let run s =
   let rec iter () =

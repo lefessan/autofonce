@@ -65,23 +65,23 @@ and exec_check ter check =
     ret_code
   in
   let failures = Runner_common.check_failures cer retcode in
-  begin
-    match failures with
-    | [] -> (* SUCCESS *)
-        List.iter (exec_action_or_check ter) check.check_run_if_pass
-    | failures ->
-        begin
-          match check.check_run_if_fail with
-          | [] ->
-              let failures = String.concat " " failures in
-              if retcode = 77 then
-                raise (SKIPPED_FAIL (cer, failures))
-              else
-                failed_check ~check cer failures
-          | actions ->
-              List.iter (exec_action_or_check ter) actions
-        end
-  end
+  match failures with
+  | [] -> (* SUCCESS *)
+      List.iter (exec_action_or_check ter) check.check_run_if_pass
+  | failures ->
+      let failures = String.concat " " failures in
+      if retcode = 99 then
+        let check = cer.checker_check in
+        failed_check ~check cer failures
+      else
+        match check.check_run_if_fail with
+        | [] ->
+            if retcode = 77 then
+              raise (SKIPPED_FAIL (cer, failures))
+            else
+              failed_check ~check cer failures
+        | actions ->
+            List.iter (exec_action_or_check ter) actions
 
 let exec_test state t =
   let ter = Runner_common.start_test state t in
