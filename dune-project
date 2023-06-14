@@ -10,7 +10,7 @@
 
 (package
  (name autofonce)
- (synopsis "autofonce: modern runner for GNU Autoconf Testsuites")
+ (synopsis "A modern runner for GNU Autoconf Testsuites")
  (description "autofonce is a modern runner for GNU Autoconf Testsuites:\nautofonce has a limited understanding of m4 macros that appear in testsuites\nwritten for the GNU Autoconf testsuites, and can run such tests in a modern\nway.\n")
  (depends
    (ocaml (>= 4.10.0))
@@ -24,13 +24,12 @@
 
 (package
  (name autofonce_core)
- (synopsis "autofonce: modern runner for GNU Autoconf Testsuites")
+ (synopsis "A modern runner for GNU Autoconf Testsuites")
  (description "autofonce is a modern runner for GNU Autoconf Testsuites:\nautofonce has a limited understanding of m4 macros that appear in testsuites\nwritten for the GNU Autoconf testsuites, and can run such tests in a modern\nway.\n")
  (depends
    (ocaml (>= 4.10.0))
    (ocplib_stuff ( >= 0.1 ))
    (ez_file ( >= 0.3 ))
-   (ez_cmdliner ( >= 0.2 ))
    (autofonce_share (= version))
    (autofonce_misc (= version))
    (autofonce_m4 (= version))
@@ -44,13 +43,13 @@
 
 (package
  (name autofonce_lib)
- (synopsis "autofonce: modern runner for GNU Autoconf Testsuites")
+ (synopsis "A modern runner for GNU Autoconf Testsuites")
  (description "autofonce is a modern runner for GNU Autoconf Testsuites:\nautofonce has a limited understanding of m4 macros that appear in testsuites\nwritten for the GNU Autoconf testsuites, and can run such tests in a modern\nway.\n")
  (depends
    (ocaml (>= 4.10.0))
    (ocplib_stuff ( >= 0.1 ))
    (ez_file ( >= 0.3 ))
-   (ez_cmdliner ( >= 0.4 ))
+   (ez_cmdliner ( >= 0.4.3 ))
    (autofonce_share (= version))
    (autofonce_patch (= version))
    (autofonce_m4 (= version))
@@ -66,7 +65,7 @@
 
 (package
  (name autofonce_m4)
- (synopsis "autofonce: modern runner for GNU Autoconf Testsuites")
+ (synopsis "A modern runner for GNU Autoconf Testsuites")
  (description "autofonce is a modern runner for GNU Autoconf Testsuites:\nautofonce has a limited understanding of m4 macros that appear in testsuites\nwritten for the GNU Autoconf testsuites, and can run such tests in a modern\nway.\n")
  (depends
    (ocaml (>= 4.10.0))
@@ -82,7 +81,7 @@
 
 (package
  (name autofonce_share)
- (synopsis "autofonce: modern runner for GNU Autoconf Testsuites")
+ (synopsis "A modern runner for GNU Autoconf Testsuites")
  (description "autofonce is a modern runner for GNU Autoconf Testsuites:\nautofonce has a limited understanding of m4 macros that appear in testsuites\nwritten for the GNU Autoconf testsuites, and can run such tests in a modern\nway.\n")
  (depends
    (ocaml (>= 4.10.0))
@@ -96,7 +95,7 @@
 
 (package
  (name autofonce_patch)
- (synopsis "autofonce: modern runner for GNU Autoconf Testsuites")
+ (synopsis "A modern runner for GNU Autoconf Testsuites")
  (description "autofonce is a modern runner for GNU Autoconf Testsuites:\nautofonce has a limited understanding of m4 macros that appear in testsuites\nwritten for the GNU Autoconf testsuites, and can run such tests in a modern\nway.\n")
  (depends
    (ocaml (>= 4.10.0))
@@ -111,11 +110,11 @@
 
 (package
  (name autofonce_config)
- (synopsis "autofonce: modern runner for GNU Autoconf Testsuites")
+ (synopsis "A modern runner for GNU Autoconf Testsuites")
  (description "autofonce is a modern runner for GNU Autoconf Testsuites:\nautofonce has a limited understanding of m4 macros that appear in testsuites\nwritten for the GNU Autoconf testsuites, and can run such tests in a modern\nway.\n")
  (depends
    (ocaml (>= 4.10.0))
-   (toml ( >= 0.7 ))
+   (toml ( >= 7.0 ))
    (ocplib_stuff ( >= 0.1 ))
    (ez_file ( >= 0.3 ))
    (autofonce_misc (= version))
@@ -128,7 +127,7 @@
 
 (package
  (name autofonce_misc)
- (synopsis "autofonce: modern runner for GNU Autoconf Testsuites")
+ (synopsis "A modern runner for GNU Autoconf Testsuites")
  (description "autofonce is a modern runner for GNU Autoconf Testsuites:\nautofonce has a limited understanding of m4 macros that appear in testsuites\nwritten for the GNU Autoconf testsuites, and can run such tests in a modern\nway.\n")
  (depends
    (ocaml (>= 4.10.0))

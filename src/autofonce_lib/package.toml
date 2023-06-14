@@ -52,7 +52,7 @@ autofonce_core = "version"
 autofonce_m4 = "version"
 autofonce_patch = "version"
 autofonce_share = "version"
-ez_cmdliner = ">=0.4"
+ez_cmdliner = ">=0.4.3"
 ez_file = ">=0.3"
 ocplib_stuff = ">=0.1"
 

@@ -4,7 +4,7 @@ opam-version: "2.0"
 name: "autofonce_config"
 version: "0.9"
 license: "GPL-3.0-only"
-synopsis: "autofonce: modern runner for GNU Autoconf Testsuites"
+synopsis: "A modern runner for GNU Autoconf Testsuites"
 description: """\
 autofonce is a modern runner for GNU Autoconf Testsuites:
 autofonce has a limited understanding of m4 macros that appear in testsuites
@@ -40,7 +40,7 @@ install: [
 depends: [
   "ocaml" {>= "4.10.0"}
   "dune" {>= "2.7.0"}
-  "toml" {>= "0.7"}
+  "toml" {>= "7.0"}
   "ocplib_stuff" {>= "0.1"}
   "ez_file" {>= "0.3"}
   "autofonce_misc" {= version}
