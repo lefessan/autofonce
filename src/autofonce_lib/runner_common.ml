@@ -71,7 +71,6 @@ let test_is_ok ter =
       ( PARSER.name_of_loc test.test_loc )
   )
 
-
 let test_is_skipped_fail cer s =
   let ter = cer.checker_tester in
   let state = ter.tester_state in

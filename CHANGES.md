@@ -1,7 +1,8 @@
 
 ## v0.9 ( 2023-??-?? )
 
-* 
+* Support for exit code 99: fail the entire AT_CHECK without running
+  run-if-fail
 
 ## v0.8 ( 2023-03-15 )
 
