@@ -153,7 +153,7 @@ let print_actions ~not_exit ~keep_old b actions =
     match action with
     | AT_CLEANUP _ -> Printf.bprintf b "AT_CLEANUP";
     | AT_DATA { file ; content } ->
-        Printf.bprintf b "AT_DATA(%s,%s)\n"
+        Printf.bprintf b "AT_DATA(%s, %s)\n"
           ( Parser.m4_escape file )
           ( Parser.m4_escape content )
     | AF_ENV string ->
@@ -178,7 +178,7 @@ let print_actions ~not_exit ~keep_old b actions =
         if promote then
           Printf.bprintf b "AF_%s([%s])\n"
             (if copy then "COPY" else "LINK")
-            ( String.concat "],["
+            ( String.concat "], ["
                 ( List.map Parser.m4_escape files ))
     | AT_CHECK  check ->
         Buffer.add_string b "AT_CHECK(";

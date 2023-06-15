@@ -26,6 +26,7 @@ let tests_ids = ref ( [] : ( int * int ) list )
 let tests_keywords = ref ( [] : string list )
 let tests_nokeywords = ref ( [] : string list )
 let only_failed = ref false
+let all_keywords = ref false
 
 let select_tests ?state select_test suite =
   let ntests = suite.suite_ntests in
@@ -52,6 +53,7 @@ let select_tests ?state select_test suite =
       | [] -> ()
       | ids ->
           List.iter (fun s ->
+              let s = String.lowercase_ascii s in
               let len = String.length s in
               if len>0 && s.[0] = '-' then
                 no_set := StringSet.add ( String.sub s 1 (len-1) ) !no_set
@@ -72,8 +74,12 @@ let select_tests ?state select_test suite =
       && t.test_id <= !exec_before
       && (all_tests
           || id_set. (t.test_id)
-          || List.exists (fun k -> StringSet.mem k keyword_set)
-            t.test_keywords
+          ||
+          (if !all_keywords then
+             StringSet.for_all
+               (fun k ->  List.mem k t.test_keywords) keyword_set
+           else
+             List.exists (fun k ->  StringSet.mem k keyword_set) t.test_keywords)
          )
       && not (
           List.exists (fun k -> StringSet.mem k nokeyword_set)
@@ -172,13 +178,13 @@ let args = [
     ),
   EZCMD.info ~docv:"ID" "Run only test ID";
 
-  [ "after" ], Arg.Int (fun x ->
+  [ "ge" ; "after" ], Arg.Int (fun x ->
       exec_after := x;
       clean_tests_dir := false;
     ),
   EZCMD.info ~docv:"ID" "Exec starting at test $(docv)";
 
-  [ "before" ], Arg.Int (fun x ->
+  [ "le" ; "before" ], Arg.Int (fun x ->
       exec_before := x;
       clean_tests_dir := false;
     ),
@@ -198,11 +204,14 @@ let args = [
     ),
   EZCMD.info ~docv:"REASON" "Run failed tests with given failure";
 
-  [ "failed" ], Arg.Unit (fun () ->
+  [ "F"; "failed" ], Arg.Unit (fun () ->
       only_failed := true ;
       clean_tests_dir := false
     ),
   EZCMD.info "Run only previously failed tests (among selected tests)";
+
+  [ "A" ; "match-all" ], Arg.Set all_keywords,
+  EZCMD.info "Run tests matching all keywords instead of only one";
 
   [], Arg.Anons (fun list ->
       match list with

@@ -28,6 +28,16 @@ let cmd =
       [ "e" ; "stop-on-failure" ], Arg.Set stop_on_first_failure,
       EZCMD.info "Stop on first failure";
 
+      [ "j" ], Arg.Int (fun n -> max_jobs := max 1 n),
+      EZCMD.info ~docv:"NJOBS" "Set maximal parallelism";
+
+      [ "1" ; "j1" ], Arg.Unit (fun () -> max_jobs := 1),
+      EZCMD.info "Use Sequential scheduling of tests";
+
+      [ "l" ; "print-seq" ], Arg.Set Runner_common.print_results,
+      EZCMD.info
+        "Print results immediately (default is to print a summary at the end)";
+
       [ "s" ; "keep-more" ], Arg.Set keep_skipped,
       EZCMD.info "Keep directories of skipped and expected failed";
 
@@ -37,11 +47,9 @@ let cmd =
       [ "no-clean" ], Arg.Clear clean_tests_dir,
       EZCMD.info "Do not clean _autofonce/ dir on startup";
 
-      [ "j1" ], Arg.Unit (fun () -> max_jobs := 1),
-      EZCMD.info "Use Sequential scheduling of tests";
-
-      [ "j" ], Arg.Int (fun n -> max_jobs := max 1 n),
-      EZCMD.info ~docv:"NJOBS" "Set maximal parallelism";
+      [ "diff" ], Arg.Unit (fun () ->
+          Globals.auto_promote := 1),
+      EZCMD.info "Print a diff showing what would be promoted";
 
     ]
   in
