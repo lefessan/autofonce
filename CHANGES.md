@@ -1,9 +1,11 @@
 
 ## v0.9 ( 2023-??-?? )
 
+* New option `-l/--print-seq` to print the result immediately (default is
+  to print a summary)
 * Improve filtering
-   * New option `--match-all` to run all tests that match ALL keywords instead
-     of the ones matching ANY keyword
+   * New option `-A/--match-all` to run all tests that match ALL keywords
+     instead of the ones matching ANY keyword
    * Add words of the test name to the test keywords
    * Remove comment date during promotion, remove corresponding option --no-comment
    * Transform all keywords to lowercase to match in a case-insensitive manner

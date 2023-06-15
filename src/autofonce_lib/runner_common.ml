@@ -21,6 +21,8 @@ module PARSER = Autofonce_core.Parser
 module MISC = Autofonce_misc.Misc
 module CONFIG = Autofonce_config.Project_config
 
+let print_results = ref false
+
 let status_len = 30
 let spaces = String.make 80 ' '
 
@@ -44,6 +46,14 @@ let test_status ter fmt =
     ) fmt
 
 let buffer_test state test_status =
+  if !print_results then begin
+    if Terminal.isatty then begin
+      Terminal.move_bol ();
+      Terminal.erase Eol;
+      Terminal.printf [] "%s\n" test_status
+    end else
+      Printf.eprintf "%s\n" test_status ;
+  end ;
   Printf.bprintf state.state_buffer "%s\n" test_status
 
 let commented s =

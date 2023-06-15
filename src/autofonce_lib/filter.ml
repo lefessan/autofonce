@@ -76,7 +76,8 @@ let select_tests ?state select_test suite =
           || id_set. (t.test_id)
           ||
           (if !all_keywords then
-             List.for_all (fun k ->  StringSet.mem k keyword_set) t.test_keywords
+             StringSet.for_all
+               (fun k ->  List.mem k t.test_keywords) keyword_set
            else
              List.exists (fun k ->  StringSet.mem k keyword_set) t.test_keywords)
          )
@@ -177,13 +178,13 @@ let args = [
     ),
   EZCMD.info ~docv:"ID" "Run only test ID";
 
-  [ "after" ], Arg.Int (fun x ->
+  [ "ge" ; "after" ], Arg.Int (fun x ->
       exec_after := x;
       clean_tests_dir := false;
     ),
   EZCMD.info ~docv:"ID" "Exec starting at test $(docv)";
 
-  [ "before" ], Arg.Int (fun x ->
+  [ "le" ; "before" ], Arg.Int (fun x ->
       exec_before := x;
       clean_tests_dir := false;
     ),
@@ -203,13 +204,13 @@ let args = [
     ),
   EZCMD.info ~docv:"REASON" "Run failed tests with given failure";
 
-  [ "failed" ], Arg.Unit (fun () ->
+  [ "F"; "failed" ], Arg.Unit (fun () ->
       only_failed := true ;
       clean_tests_dir := false
     ),
   EZCMD.info "Run only previously failed tests (among selected tests)";
 
-  [ "match-all" ], Arg.Set all_keywords,
+  [ "A" ; "match-all" ], Arg.Set all_keywords,
   EZCMD.info "Run tests matching all keywords instead of only one";
 
   [], Arg.Anons (fun list ->
