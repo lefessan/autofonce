@@ -19,7 +19,9 @@ module Misc = Autofonce_misc.Misc
 open Types
 
 let print_actions ~not_exit ~keep_old b actions =
-  let rec print_check b check =
+  let rec string_of_check check =
+    let b = Buffer.create 1000 in
+    Buffer.add_string b "AT_CHECK(";
     let check_dir = Runner_common.check_dir check in
     let check_prefix = check_dir // Runner_common.check_prefix check in
     Printf.bprintf b "%s" ( Parser.m4_escape check.check_command );
@@ -74,8 +76,12 @@ let print_actions ~not_exit ~keep_old b actions =
                   Content old_content
         in
         match stdout with
-        | Content old_content ->
-            Printf.bprintf b ", %s" (Parser.m4_escape old_content)
+        | Content content ->
+            let s = Parser.m4_escape content in
+            if Buffer.length b + String.length s > 80 then
+              Printf.bprintf b ",\n%s" s
+            else
+              Printf.bprintf b ", %s" s
         | Ignore ->
             match check.check_stderr with
             | Ignore -> ()
@@ -86,21 +92,25 @@ let print_actions ~not_exit ~keep_old b actions =
       begin
         let stderr =
           if keep_old then check.check_stderr else
-          match check.check_stderr with
-          | Ignore -> Ignore
-          | Content old_content ->
-              let check_stderr =
-                Printf.sprintf "%s.err.subst" check_prefix in
-              if Sys.file_exists check_stderr then
-                let s = EzFile.read_file check_stderr in
-                Content s
-              else
-                Content old_content
+            match check.check_stderr with
+            | Ignore -> Ignore
+            | Content old_content ->
+                let check_stderr =
+                  Printf.sprintf "%s.err.subst" check_prefix in
+                if Sys.file_exists check_stderr then
+                  let s = EzFile.read_file check_stderr in
+                  Content s
+                else
+                  Content old_content
         in
         match stderr with
         | Ignore -> ()
         | Content content ->
-            Printf.bprintf b ", %s" (Parser.m4_escape content)
+            let s = Parser.m4_escape content in
+            if Buffer.length b + String.length s > 80 then
+              Printf.bprintf b ",\n%s" s
+            else
+              Printf.bprintf b ", %s" s
       end;
 
     end else begin (* no promotion of this test, only internal ones *)
@@ -113,21 +123,20 @@ let print_actions ~not_exit ~keep_old b actions =
             Printf.bprintf b ", [%d]" retcode;
       end;
 
-      begin
-        match check.check_stdout with
+      let print_check_std check_std =
+        match check_std with
         | Ignore ->
             Printf.bprintf b ", [ignore]"
         | Content content ->
-            Printf.bprintf b ", %s" (Parser.m4_escape content)
-      end;
+            let s = Parser.m4_escape content in
+            if Buffer.length b + String.length s > 80 then
+              Printf.bprintf b ",\n%s" s
+            else
+              Printf.bprintf b ", %s" s
+      in
 
-      begin
-        match check.check_stderr with
-        | Ignore ->
-            Printf.bprintf b ", [ignore]"
-        | Content content ->
-            Printf.bprintf b ", %s" (Parser.m4_escape content)
-      end;
+      print_check_std check.check_stdout ;
+      print_check_std check.check_stderr ;
 
       begin
         match check.check_run_if_fail with
@@ -147,11 +156,13 @@ let print_actions ~not_exit ~keep_old b actions =
             print_actions b actions;
             Printf.bprintf b "]"
       end
-    end
+    end ;
+    Buffer.add_string b ")" ;
+    Buffer.contents b
 
   and print_action b action =
     match action with
-    | AT_CLEANUP _ -> Printf.bprintf b "AT_CLEANUP";
+    | AT_CLEANUP _ -> Printf.bprintf b "\nAT_CLEANUP";
     | AT_DATA { file ; content } ->
         Printf.bprintf b "AT_DATA(%s, %s)\n"
           ( Parser.m4_escape file )
@@ -180,10 +191,10 @@ let print_actions ~not_exit ~keep_old b actions =
             (if copy then "COPY" else "LINK")
             ( String.concat "], ["
                 ( List.map Parser.m4_escape files ))
-    | AT_CHECK  check ->
-        Buffer.add_string b "AT_CHECK(";
-        print_check b check ;
-        Buffer.add_string b ")\n"
+    | AT_CHECK check ->
+        Printf.bprintf b "\n%s\n" ( string_of_check check )
+    | AF_COMMENT comment ->
+        Printf.bprintf b "#%s\n\n" comment
 
   and print_actions b actions =
     List.iter ( print_action b ) actions

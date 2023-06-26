@@ -19,6 +19,7 @@ let string_of_token = function
   | FIRST_ARG s -> Printf.sprintf "FIRST_ARG %S" s
   | NEXT_ARG s -> Printf.sprintf "NEXT_ARG %S" s
   | LAST_ARG s -> Printf.sprintf "LAST_ARG %S" s
+  | COMMENT s -> Printf.sprintf "COMMENT %S" s
   | EOF -> "EOF"
 
 let string_of_location loc =
@@ -34,6 +35,8 @@ let string_of_macro statement =
             ( List.map string_of_arg args ))
   | Shell shell ->
       Printf.sprintf "Shell: %s" shell
+  | Comment comment ->
+      Printf.sprintf "Comment: %s" comment
 
 let string_of_block list =
   String.concat "\n" ( List.map string_of_macro list )

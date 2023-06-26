@@ -99,7 +99,10 @@ let space = [ '\r' '\t' ' ' ]
 
 rule shell = parse
   | eof { location lexbuf, EOF }
-  | '#' [ ^ '\n' ]* { shell lexbuf }
+  | '#' (( ([ ^ '\n' ]* "\n#")* [ ^ '\n' ]* ) as comment) {
+      let loc = location lexbuf in
+      String.iter (function '\n' -> Lexing.new_line lexbuf | _ -> ()) comment;
+      loc, COMMENT comment }
   | space+ { shell lexbuf }
   | '\n' { Lexing.new_line lexbuf; shell lexbuf }
   | ( alpha alphanum* as ident ) {

@@ -61,7 +61,7 @@ let promote p tc suite =
       match t.test_keywords with
       | [] -> ()
       | list ->
-          Printf.bprintf b "AT_KEYWORDS(%s)\n"
+          Printf.bprintf b "AT_KEYWORDS(%s)\n\n"
             (Parser.m4_escape (String.concat " " list))
     end;
     Promote.print_actions

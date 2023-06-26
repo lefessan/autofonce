@@ -54,6 +54,7 @@ and action =
                  copy : bool ; (* copy or link ? *)
                  promote : bool ; (* explicit or implicit ? *)
                }
+  | AF_COMMENT of string
 
 and test = { (* variable name is `t` *)
   test_suite : suite ;
@@ -65,6 +66,7 @@ and test = { (* variable name is `t` *)
   test_subst : string list ;
   mutable test_keywords : string list ;
   mutable test_actions : action list ;
+  mutable test_keywords_set : StringSet.t ;
 }
 
 and suite = { (* variable name is `c` *)
@@ -107,6 +109,8 @@ let rec string_of_action = function
       Printf.sprintf "AT_CLEANUP %s" ( string_of_location loc )
   | AF_ENV env ->
       Printf.sprintf "AF_ENV %S" env
+  | AF_COMMENT comment ->
+      Printf.sprintf "AF_COMMENT %S" comment
 
 and string_of_check_output = function
     | Ignore -> "IGNORE"

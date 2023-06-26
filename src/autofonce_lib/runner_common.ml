@@ -124,6 +124,7 @@ let exec_action_no_check ter action =
   | AT_DATA { file ; content } ->
       EzFile.write_file ( tester_dir ter // file ) content
   | AT_CLEANUP _ -> ()
+  | AF_COMMENT _ -> ()
   | AT_XFAIL -> ter.tester_fail_expected <- true
   | AF_ENV env -> ter.tester_renvs <- env :: ter.tester_renvs
   | AT_CAPTURE_FILE file ->
