@@ -152,6 +152,9 @@ let load_file ~dirs ~keep_files ~path c filename =
               let s = { s with subst } in
               iter_state s macros
 
+          | Comment _ ->
+              iter_state s macros
+
           | Macro ( ( "AF_SETUP" | "AT_SETUP" ), [ name ]) ->
               c.suite_ntests <- c.suite_ntests + 1;
               let test_name = M4Parser.to_string name in
@@ -166,6 +169,7 @@ let load_file ~dirs ~keep_files ~path c filename =
                 test_actions = [];
                 test_banner = s.banner ;
                 test_subst = s.subst ;
+                test_keywords_set = StringSet.empty ;
               }
               in
               let steps = ref [0] in
@@ -191,9 +195,14 @@ let load_file ~dirs ~keep_files ~path c filename =
                   | '0'..'9' -> c
                   | _ -> ' ') t.test_name
               in
-              t.test_keywords <- t.test_keywords
-                                 @ EzString.split_simplify test_name ' ';
-              t.test_keywords <- List.map String.lowercase_ascii t.test_keywords ;
+              let test_keywords =
+                t.test_keywords
+                @ EzString.split_simplify test_name ' '
+              in
+              let test_keywords =
+                List.map String.lowercase_ascii test_keywords
+              in
+              t.test_keywords_set <- StringSet.of_list test_keywords ;
               iter_state s macros
 
           | Macro (_, _) ->
@@ -411,6 +420,9 @@ let load_file ~dirs ~keep_files ~path c filename =
             check_run_if_pass = [] ;
             check_run_if_fail = [] ;
           }
+
+      | Comment comment ->
+          AF_COMMENT comment
 
       (* Extensions *)
       | Macro ( ( "AF_ENV" | "AT_ENV" ), [ env ] ) ->

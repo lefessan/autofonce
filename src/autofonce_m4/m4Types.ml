@@ -25,6 +25,7 @@ type token =
   | FIRST_ARG of string
   | NEXT_ARG of string
   | LAST_ARG of string
+  | COMMENT of string
   | EOF
 
 type block = statement list
@@ -32,6 +33,7 @@ type block = statement list
 and kind =
   | Macro of string * arg list
   | Shell of string
+  | Comment of string
 
 and statement = {
   kind : kind ;

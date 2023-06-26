@@ -40,6 +40,7 @@ let rec exec_action_or_check ter action =
       exec_check ter (
         Runner_common.check_of_at_file ~copy ter step loc command )
 
+  | AF_COMMENT _
   | AT_XFAIL
   | AT_DATA _
   | AT_CAPTURE_FILE _

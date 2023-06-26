@@ -77,13 +77,13 @@ let select_tests ?state select_test suite =
           ||
           (if !all_keywords then
              StringSet.for_all
-               (fun k ->  List.mem k t.test_keywords) keyword_set
+               (fun k ->  StringSet.mem k t.test_keywords_set) keyword_set
            else
-             List.exists (fun k ->  StringSet.mem k keyword_set) t.test_keywords)
+             StringSet.exists (fun k ->  StringSet.mem k keyword_set) t.test_keywords_set)
          )
       && not (
-          List.exists (fun k -> StringSet.mem k nokeyword_set)
-            t.test_keywords
+          StringSet.exists (fun k -> StringSet.mem k nokeyword_set)
+            t.test_keywords_set
         )
       then
         if !only_failed then begin

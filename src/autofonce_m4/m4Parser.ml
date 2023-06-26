@@ -45,6 +45,9 @@ let parse_string ?loc content =
     | SHELL shell ->
         expect_ident ( { kind = Shell shell ; loc = new_loc } :: macros )
           ( M4Lexer.token lexbuf )
+    | COMMENT comment ->
+        expect_ident ( { kind = Comment comment ; loc = new_loc } :: macros )
+          ( M4Lexer.token lexbuf )
     | _ -> error new_loc "Unexpected token %S in expect_ident"
              (M4Printer.string_of_token token)
 
@@ -58,6 +61,10 @@ let parse_string ?loc content =
           (new_loc,new_ident) ( M4Lexer.token lexbuf )
     | SHELL shell ->
         expect_ident ( { kind = Shell shell ; loc = new_loc } ::
+                       { kind = Macro (ident,[]) ; loc } :: macros )
+          ( M4Lexer.token lexbuf )
+    | COMMENT comment ->
+        expect_ident ( { kind = Comment comment ; loc = new_loc } ::
                        { kind = Macro (ident,[]) ; loc } :: macros )
           ( M4Lexer.token lexbuf )
     | FIRST_ARG arg ->
