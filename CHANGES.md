@@ -1,4 +1,10 @@
 
+## 1.0
+
+* Add file basename to test keywords, so that it is possible to use it
+as a keyword to select all the test of a file
+* Add --diff-args="..." to use instead of "-u" during promotion display
+
 ## v0.9 ( 2023-06-27 )
 
 * New option `-l/--print-seq` to print the result immediately (default is
