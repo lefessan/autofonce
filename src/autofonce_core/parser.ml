@@ -196,6 +196,7 @@ let load_file ~dirs ~keep_files ~path c filename =
                   | _ -> ' ') t.test_name
               in
               let test_keywords =
+                Filename.basename t.test_loc.file ::
                 t.test_keywords
                 @ EzString.split_simplify test_name ' '
               in
