@@ -17,7 +17,7 @@ type action =
   | Apply (* really apply to file *)
   | Fake of string  (* generate files with EXTENSION instead of former
                        name *)
-  | Diff of { exclude : string list }
+  | Diff of { exclude : string list ; args : string option }
 
 
 type replace_block = {
@@ -65,7 +65,7 @@ let check_consistency actions =
       in
       iter action actions
 
-let commit_to_disk ?(action=Diff { exclude=[] }) ?(backup="~") () =
+let commit_to_disk ?(action=Diff { exclude=[]; args=None }) ?(backup="~") () =
   let tmp_dir = Filename.temp_file "patch_lines" "dir" in
   Sys.remove tmp_dir ;
   let tmp_dir_a = tmp_dir // "a" in
@@ -127,7 +127,7 @@ let commit_to_disk ?(action=Diff { exclude=[] }) ?(backup="~") () =
             Sys.rename file (file ^ backup);
             Sys.rename new_file file;
             Printf.eprintf "File %S updated\n%!" file
-        | Diff { exclude } ->
+        | Diff { exclude ; args } ->
             if not ( Sys.file_exists tmp_dir ) then begin
               Unix.mkdir tmp_dir 0o755;
               Unix.mkdir tmp_dir_a 0o755;
@@ -140,7 +140,10 @@ let commit_to_disk ?(action=Diff { exclude=[] }) ?(backup="~") () =
             EzFile.write_file file_a old_content ;
             EzFile.write_file file_b content ;
             let cmd = Printf.sprintf
-                "diff -u %s %s %s"
+                "diff %s %s %s %s"
+                (match args with
+                 | None -> "-u"
+                 | Some args -> args)
                 (String.concat " "
                    (List.map (fun s -> Printf.sprintf "-I '%s'" s) exclude))
                 file_a file_b

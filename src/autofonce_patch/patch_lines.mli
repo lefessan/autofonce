@@ -21,6 +21,6 @@ type action =
   | Apply (* really apply to file *)
   | Fake of string  (* generate files with EXTENSION instead of former
                        name *)
-  | Diff of { exclude : string list }
+  | Diff of { exclude : string list ; args : string option }
 
 val commit_to_disk : ?action:action -> ?backup:string -> unit -> unit

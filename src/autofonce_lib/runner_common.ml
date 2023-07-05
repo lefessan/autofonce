@@ -386,6 +386,25 @@ let check_failures cer retcode =
             stdout_subst_file stdout_expected_file stdout_file;
           [ kind ]
         end else []
+    | Save_to_file target ->
+        let stdout_file = test_dir // file in
+        let target_file = test_dir // target in
+        let content = EzFile.read_file stdout_file in
+        EzFile.write_file target_file content;
+        []
+    | Diff_with_file expected ->
+        let stdout_file = test_dir // file in
+        let stdout_content = EzFile.read_file stdout_file in
+        let expected_file = test_dir // expected in
+        let expected_content = EzFile.read_file expected_file in
+        if expected_content <> stdout_content then begin
+          let stdout_expected_file = stdout_file ^ ".expected" in
+          EzFile.write_file stdout_expected_file expected_content ;
+          MISC.command_ "diff -u %s %s > %s.diff"
+            stdout_file stdout_expected_file stdout_file;
+          [ kind ]
+        end else []
+
   in
   begin match check.check_retcode with
     | None -> []

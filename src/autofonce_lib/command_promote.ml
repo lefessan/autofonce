@@ -20,8 +20,8 @@ open Types
 open Globals
 
 (* TODO: check why the ignore pattern does not work *)
-let diff = Patch_lines.Diff { exclude = [ "^# promoted on .*" ]}
-let todo = ref diff
+let diff args = Patch_lines.Diff { exclude = [ "^# promoted on .*" ]; args }
+let todo = ref (diff None)
 let not_exit = ref false
 
 let promote p tc suite =
@@ -82,6 +82,9 @@ let args auto_promote_arg = [
   [ "not-exit" ], Arg.Set not_exit,
   EZCMD.info "Do not promote exit code" ;
 
+  [ "diff-args" ], Arg.String (fun s -> todo := diff (Some s)),
+  EZCMD.info ~docv:"ARGS" "Pass these args to the diff command" ;
+
   [ auto_promote_arg ], Arg.Int (fun n ->
       auto_promote := n ;
       todo := Apply ;
@@ -113,7 +116,7 @@ let cmd =
       [ "apply" ], Arg.Unit (fun () -> todo := Apply),
       EZCMD.info "Apply promotion (default is to diff)" ;
 
-      [ "diff" ], Arg.Unit (fun () -> todo := diff),
+      [ "diff" ], Arg.Unit (fun () -> todo := diff None),
       EZCMD.info "Diff promotion (default)" ;
 
       [ "fake" ], Arg.String (fun ext -> todo := Fake ext),

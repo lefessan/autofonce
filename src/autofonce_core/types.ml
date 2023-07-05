@@ -17,6 +17,8 @@ type location = Autofonce_m4.M4Types.location
 type check_output =
   | Ignore
   | Content of string
+  | Save_to_file of string
+  | Diff_with_file of string
 
 type step = string
 
@@ -115,6 +117,8 @@ let rec string_of_action = function
 and string_of_check_output = function
     | Ignore -> "IGNORE"
     | Content s -> Printf.sprintf "EXPECT [%s]" s
+    | Save_to_file s -> Printf.sprintf "SAVE TO FILE [%s]" s
+    | Diff_with_file s -> Printf.sprintf "DIFF WITH FILE [%s]" s
 
 and string_of_runif = function
   | [] -> ""
