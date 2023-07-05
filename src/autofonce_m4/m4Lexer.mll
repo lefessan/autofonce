@@ -146,7 +146,7 @@ and arg = parse
       arg lexbuf
     }
   | eof { failwith "Unexpected end of file in macro" }
-  | '\n' {
+  | ' '* ('\r'?) '\n' {
       debug lexbuf ;
       Lexing.new_line lexbuf;
       Buffer.add_char quoted_buffer '\n';
