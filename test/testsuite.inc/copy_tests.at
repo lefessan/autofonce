@@ -45,7 +45,7 @@ file
 is
 dir/file-in-dir.txt
 ], [])
-AT_CHECK([cat copy-tests.at], [1])
+AT_CHECK([cat copy-tests.at], [1], [], [ignore])
 AT_CLEANUP
 
 
@@ -59,8 +59,8 @@ AT_CLEANUP
 AT_COPY_ALL([false])
 
 AT_SETUP([AT_COPY_ALL(false)])
-AT_CHECK([cat simple-file.txt], [1])
-AT_CHECK([cat dir/file-in-dir.txt], [1])
+AT_CHECK([cat simple-file.txt], [1], [], [ignore])
+AT_CHECK([cat dir/file-in-dir.txt], [1], [], [ignore])
 AT_CLEANUP
 
 
@@ -98,8 +98,8 @@ AT_CLEANUP
 AT_LINK_ALL([false])
 
 AT_SETUP([AT_LINK_ALL(false)])
-AT_CHECK([cat simple-file.txt], [1])
-AT_CHECK([cat dir/file-in-dir.txt], [1])
+AT_CHECK([cat simple-file.txt], [1], [], [ignore])
+AT_CHECK([cat dir/file-in-dir.txt], [1], [], [ignore])
 AT_CLEANUP
 
 

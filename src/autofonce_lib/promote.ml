@@ -66,8 +66,7 @@ let print_actions ~not_exit ~keep_old b actions =
               Printf.bprintf b ", [%d]" retcode
             else
               match check.check_stdout, check.check_stderr with
-              (* TODO, it might have to be replaced by `Content ""` *)
-              | Ignore, Ignore -> ()
+              | Content "", Content "" -> ()
               | _ ->
                   Printf.bprintf b ", [%d]" retcode;
       end;
@@ -91,11 +90,17 @@ let print_actions ~not_exit ~keep_old b actions =
         in
         match stdout with
         | Content content ->
-            let s = Parser.m4_escape content in
-            if Buffer.length b + String.length s > 80 then
-              Printf.bprintf b ",\n%s" s
+            if content = "" then
+              match check.check_stderr with
+              | Content "" -> ()
+              | _ ->
+                  Printf.bprintf b ", []"
             else
-              Printf.bprintf b ", %s" s
+              let s = Parser.m4_escape content in
+              if Buffer.length b + String.length s > 80 then
+                Printf.bprintf b ",\n%s" s
+              else
+                Printf.bprintf b ", %s" s
         | Save_to_file file ->
             assert (file = "stdout" || file = "stderr");
             Printf.bprintf b ", [%s]" file
@@ -103,11 +108,8 @@ let print_actions ~not_exit ~keep_old b actions =
             assert (file = "expout" || file = "experr");
             Printf.bprintf b ", [%s]" file
         | Ignore ->
-            match check.check_stderr with
-            (* TODO, it might have to be replaced by `Content ""` *)
-            | Ignore -> ()
-            | _ ->
-                Printf.bprintf b ", [ignore]"
+            Printf.bprintf b ", [ignore]"
+
       end;
 
       begin
@@ -128,14 +130,15 @@ let print_actions ~not_exit ~keep_old b actions =
               -> check.check_stdout
         in
         match stderr with
-        (* TODO, it might have to be replaced by `Content ""` *)
-        | Ignore -> ()
+        | Ignore ->
+            Printf.bprintf b ", [ignore]"
         | Save_to_file file ->
             assert (file = "stdout" || file = "stderr");
             Printf.bprintf b ", [%s]" file
         | Diff_with_file file ->
             assert (file = "expout" || file = "experr");
             Printf.bprintf b ", [%s]" file
+        | Content "" -> ()
         | Content content ->
             let s = Parser.m4_escape content in
             if Buffer.length b + String.length s > 80 then

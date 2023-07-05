@@ -347,10 +347,7 @@ let load_file ~dirs ~keep_files ~path c filename =
           let check_stdout, args =
             match args with
             | [] ->
-                (* TODO: check documentation of Autoconf. It may be
-                   that no args is equivalent to `Content ""` instead
-                   of `Ignore` *)
-                Ignore, []
+                Content "", []
             | arg :: args ->
                 let arg = M4Parser.to_string arg in
                 let arg = match arg with
@@ -363,10 +360,7 @@ let load_file ~dirs ~keep_files ~path c filename =
           in
           let check_stderr, args =
             match args with
-            | [] -> Ignore, []
-            (* TODO: check documentation of Autoconf. It may be
-               that no args is equivalent to `Content ""` instead
-               of `Ignore` *)
+            | [] -> Content "", []
             | arg :: args ->
                 let arg = M4Parser.to_string arg in
                 let arg = match arg with
@@ -545,11 +539,29 @@ let read ?(path=[]) filename =
 let m4_escape s =
   let b = Buffer.create (String.length s) in
   Buffer.add_char b '[';
-  for i = 0 to String.length s - 1 do
-    match s.[i] with
-    | '[' -> Buffer.add_string b "@<:@"
-    | ']' -> Buffer.add_string b "@:>@"
-    | c -> Buffer.add_char b c
-  done;
+  let rec iter was_space b s pos len =
+    if pos < len then
+      let c = s.[pos] in
+      let pos = pos+1 in
+      match c with
+      | '[' ->
+          Buffer.add_string b "@<:@";
+          iter false b s pos len
+      | ']' ->
+          Buffer.add_string b "@:>@";
+          iter false b s pos len
+      | ' ' | '\t' | '\012' ->
+          Buffer.add_char b c;
+          iter true b s pos len;
+      | '\n' ->
+          if was_space then
+            Buffer.add_string b "@&t@";
+          Buffer.add_char b c;
+          iter false b s pos len;
+      | c ->
+          Buffer.add_char b c;
+          iter false b s pos len;
+  in
+  iter false b s 0 ( String.length s );
   Buffer.add_char b ']';
   Buffer.contents b
