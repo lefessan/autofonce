@@ -18,6 +18,16 @@ module Parser = Autofonce_core.Parser
 module Misc = Autofonce_misc.Misc
 open Types
 
+(* TODO: Currently, we don't handle the use of `expout` and `experr`
+   for promotion. We might want to be clever here and try to fix
+   `expout` and `experr` if they are created by `AT_DATA(...)` and a
+   check later fails. However, we have to be careful to check that
+   they are not used in several checks. One solution would be to
+   create a `AT_DATA()` with the correct result, without modifying the
+   `AT_CHECK`, so that the user can use it if he wants.
+*)
+
+
 let print_actions ~not_exit ~keep_old b actions =
   let rec string_of_check check =
     let b = Buffer.create 1000 in
@@ -56,6 +66,7 @@ let print_actions ~not_exit ~keep_old b actions =
               Printf.bprintf b ", [%d]" retcode
             else
               match check.check_stdout, check.check_stderr with
+              (* TODO, it might have to be replaced by `Content ""` *)
               | Ignore, Ignore -> ()
               | _ ->
                   Printf.bprintf b ", [%d]" retcode;
@@ -74,6 +85,9 @@ let print_actions ~not_exit ~keep_old b actions =
                   Content s
                 else
                   Content old_content
+            | Save_to_file _
+            | Diff_with_file _
+              -> check.check_stdout
         in
         match stdout with
         | Content content ->
@@ -82,8 +96,15 @@ let print_actions ~not_exit ~keep_old b actions =
               Printf.bprintf b ",\n%s" s
             else
               Printf.bprintf b ", %s" s
+        | Save_to_file file ->
+            assert (file = "stdout" || file = "stderr");
+            Printf.bprintf b ", [%s]" file
+        | Diff_with_file file ->
+            assert (file = "expout" || file = "experr");
+            Printf.bprintf b ", [%s]" file
         | Ignore ->
             match check.check_stderr with
+            (* TODO, it might have to be replaced by `Content ""` *)
             | Ignore -> ()
             | _ ->
                 Printf.bprintf b ", [ignore]"
@@ -102,9 +123,19 @@ let print_actions ~not_exit ~keep_old b actions =
                   Content s
                 else
                   Content old_content
+            | Save_to_file _
+            | Diff_with_file _
+              -> check.check_stdout
         in
         match stderr with
+        (* TODO, it might have to be replaced by `Content ""` *)
         | Ignore -> ()
+        | Save_to_file file ->
+            assert (file = "stdout" || file = "stderr");
+            Printf.bprintf b ", [%s]" file
+        | Diff_with_file file ->
+            assert (file = "expout" || file = "experr");
+            Printf.bprintf b ", [%s]" file
         | Content content ->
             let s = Parser.m4_escape content in
             if Buffer.length b + String.length s > 80 then
@@ -127,6 +158,12 @@ let print_actions ~not_exit ~keep_old b actions =
         match check_std with
         | Ignore ->
             Printf.bprintf b ", [ignore]"
+        | Save_to_file file ->
+            assert (file = "stdout" || file = "stderr");
+            Printf.bprintf b ", [%s]" file
+        | Diff_with_file file ->
+            assert (file = "expout" || file = "experr");
+            Printf.bprintf b ", [%s]" file
         | Content content ->
             let s = Parser.m4_escape content in
             if Buffer.length b + String.length s > 80 then

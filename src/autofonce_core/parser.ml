@@ -346,11 +346,17 @@ let load_file ~dirs ~keep_files ~path c filename =
           in
           let check_stdout, args =
             match args with
-            | [] -> Ignore, []
+            | [] ->
+                (* TODO: check documentation of Autoconf. It may be
+                   that no args is equivalent to `Content ""` instead
+                   of `Ignore` *)
+                Ignore, []
             | arg :: args ->
                 let arg = M4Parser.to_string arg in
                 let arg = match arg with
                   | "ignore" -> Ignore
+                  | "stdout" -> Save_to_file arg
+                  | "expout" -> Diff_with_file arg
                   | s -> Content s
                 in
                 arg, args
@@ -358,10 +364,15 @@ let load_file ~dirs ~keep_files ~path c filename =
           let check_stderr, args =
             match args with
             | [] -> Ignore, []
+            (* TODO: check documentation of Autoconf. It may be
+               that no args is equivalent to `Content ""` instead
+               of `Ignore` *)
             | arg :: args ->
                 let arg = M4Parser.to_string arg in
                 let arg = match arg with
                   | "ignore" -> Ignore
+                  | "stderr" -> Save_to_file arg
+                  | "experr" -> Diff_with_file arg
                   | s -> Content s
                 in
                 arg, args
