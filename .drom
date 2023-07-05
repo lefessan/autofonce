@@ -100,8 +100,7 @@ c6a46d22f2a1886a27d2bdee4fee14da:dune-project
 
 # begin context for opam/autofonce.opam
 # file opam/autofonce.opam
-0c76c9db81ced90233987ddf27043d9a:opam/autofonce.opam
-770649163c308bef1c13c349dbddd4e6:opam/autofonce.opam
+b05c24289a03cc3845c9429700aff6c8:opam/autofonce.opam
 # end context for opam/autofonce.opam
 
 # begin context for opam/autofonce_config.opam
@@ -121,26 +120,22 @@ ce7a9679b1a0e59669df0650abf6b007:opam/autofonce_config.opam
 
 # begin context for opam/autofonce_m4.opam
 # file opam/autofonce_m4.opam
-dee296c3d8be32519b10ec3d21b4a7ab:opam/autofonce_m4.opam
-c7c638fc61807f1e166c6170b64f1160:opam/autofonce_m4.opam
+fea50747b9b9ca3a584fe11eb601c555:opam/autofonce_m4.opam
 # end context for opam/autofonce_m4.opam
 
 # begin context for opam/autofonce_misc.opam
 # file opam/autofonce_misc.opam
-4301c268e3ca9ae292402418154eeb48:opam/autofonce_misc.opam
-0ccea5eccef5375387d0fb7fc81efe38:opam/autofonce_misc.opam
+3058e4101ec7028892448e2a0193cab7:opam/autofonce_misc.opam
 # end context for opam/autofonce_misc.opam
 
 # begin context for opam/autofonce_patch.opam
 # file opam/autofonce_patch.opam
-80143eb0dcf1638b72c71446162ca8bb:opam/autofonce_patch.opam
-646194b2325b4ee4f681f29d03c2dbe7:opam/autofonce_patch.opam
+16c2747d64089a21acfc039dbcb76664:opam/autofonce_patch.opam
 # end context for opam/autofonce_patch.opam
 
 # begin context for opam/autofonce_share.opam
 # file opam/autofonce_share.opam
-b2c2d33959d1b227dfe3d390df0de05d:opam/autofonce_share.opam
-71a2ea243348fc1468ea984e3224a757:opam/autofonce_share.opam
+4699a7621c5b480f97f629b141b0c07a:opam/autofonce_share.opam
 # end context for opam/autofonce_share.opam
 
 # begin context for scripts/after.sh
