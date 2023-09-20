@@ -39,7 +39,7 @@ let remove_rec dir = command "rm -rf %s" dir
 
 let remove_all dir = command "rm -rf %s/*" dir
 
-let find_file file =
+let find_file ?from file =
   let rec iter dirname =
     let filename = dirname // file in
     if Sys.file_exists filename then filename else
@@ -49,7 +49,11 @@ let find_file file =
       else
         iter newdir
   in
-  iter ( Sys.getcwd () )
+  let from = match from with
+    | None -> Sys.getcwd ()
+    | Some dir -> dir
+  in
+  iter from
 
 let find_in_path path name =
   if not (Filename.is_implicit name) then

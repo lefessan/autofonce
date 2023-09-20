@@ -102,9 +102,9 @@ let exec_test state t =
   end;
   ()
 
-let exec_testsuite state =
+let exec_testsuite ~filter_args state =
   let suite = state.state_suite in
-  Filter.select_tests ~state (fun t ->
+  Filter.select_tests ~args:filter_args ~state (fun t ->
       if t.test_banner <> state.state_banner then begin
         Runner_common.output state "%s" t.test_banner;
         state.state_banner <- t.test_banner

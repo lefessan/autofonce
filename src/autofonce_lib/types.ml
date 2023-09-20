@@ -15,9 +15,27 @@ open EzCompat (* for StringSet *)
 include Autofonce_core.Types
 include Autofonce_config.Types
 
+
+type exec_args = {
+  mutable arg_clean_tests_dir : bool ;
+  mutable arg_max_jobs : int ;
+  mutable arg_auto_promote : int ;
+
+  mutable arg_fake : bool ;
+  mutable arg_print_results : bool ;
+  mutable arg_subst_env : ( string * string ) option StringMap.t ;
+  mutable arg_stop_on_first_failure : bool ;
+  mutable arg_print_all : bool ;
+  mutable arg_keep_skipped : bool ;
+  mutable arg_keep_all : bool ;
+  mutable arg_output : string option ; (* full path to results.log *)
+
+}
+
 (* imperative context, these values are meaningless at the end of
    functions *)
 type state = { (* variable name is `state` *)
+  state_args : exec_args ;
   state_suite : suite ;
   state_run_dir : string ;
   state_config : testsuite_config ;

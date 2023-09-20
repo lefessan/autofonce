@@ -10,6 +10,4 @@
 (*                                                                        *)
 (**************************************************************************)
 
-val output : string option ref
-
 val log_state_buffer : Types.state -> unit

@@ -10,4 +10,4 @@
 (*                                                                        *)
 (**************************************************************************)
 
-val exec_testsuite : Types.state -> unit
+val exec_testsuite : filter_args:Filter.args -> Types.state -> unit

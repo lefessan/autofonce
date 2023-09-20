@@ -25,8 +25,6 @@ module PARSER = Autofonce_core.Parser
 
 open Types
 
-let output = ref None (* full path to results.log *)
-
 let indents =  Array.init 10 (fun i -> String.make i ' ')
 
 let log_header ?(indent=0) state fmt =
@@ -238,7 +236,7 @@ let log_state_buffer state =
     ( List.rev state.state_tests_failed ) ;
   log_captured_files state "Project" p.project_captured_files;
 
-  let buffer_file = match !output with
+  let buffer_file = match state.state_args.arg_output with
     | None ->
         let tests_dir = Autofonce_config.Globals.tests_dir in
         Sys.getcwd () // tests_dir // "results.log"

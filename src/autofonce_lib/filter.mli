@@ -10,11 +10,21 @@
 (*                                                                        *)
 (**************************************************************************)
 
+type args = {
+  mutable arg_filter : bool ;
+
+  mutable arg_failures : string option ;
+  mutable arg_exec_after : int ;
+  mutable arg_exec_before : int ;
+  mutable arg_tests_ids : ( int * int ) list ;
+  mutable arg_tests_keywords : string list ;
+  mutable arg_tests_nokeywords : string list ;
+  mutable arg_only_failed : bool ;
+  mutable arg_all_keywords : bool ;
+}
+
 val select_tests :
+  args:args ->
   ?state:Types.state -> (Types.test -> unit) -> Types.suite -> unit
 
-val only_failed : bool ref
-
-val args :
-   (string list * Ezcmd.V2.EZCMD.TYPES.Arg.spec *
-    Ezcmd.V2.EZCMD.TYPES.info) list
+val args : unit -> Ezcmd.V2.EZCMD.TYPES.arg_list * ( unit -> args )

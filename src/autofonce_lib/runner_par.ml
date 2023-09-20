@@ -13,7 +13,6 @@
 open EzCompat (* for IntMap *)
 
 open Types
-open Globals (* toplevel references *)
 
 type scheduler = {
   state : state ;
@@ -167,7 +166,8 @@ and job_terminated r retcode =
 let run s =
   let rec iter () =
     if !Globals.verbose > 1 then Printf.eprintf "iter %d\n%!" s.current_jobs;
-    if s.current_jobs < !max_jobs && not (Queue.is_empty s.test_fifo) then
+    if s.current_jobs < s.state.state_args.arg_max_jobs &&
+       not (Queue.is_empty s.test_fifo) then
       let t = Queue.take s.test_fifo in
       schedule_test s t;
       iter ()
@@ -194,7 +194,7 @@ let run s =
   in
   iter ()
 
-let exec_testsuite state =
+let exec_testsuite ~filter_args state =
   let c = state.state_suite in
   let s = {
     state;
@@ -205,6 +205,6 @@ let exec_testsuite state =
   let select_test t =
     Queue.add t s.test_fifo;
   in
-  Filter.select_tests ~state select_test c;
+  Filter.select_tests ~args:filter_args ~state select_test c;
   state.state_ntests <- Queue.length s.test_fifo ;
   run s

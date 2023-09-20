@@ -11,45 +11,19 @@
 (**************************************************************************)
 
 open Ezcmd.V2
-open EZCMD.TYPES
 
-open Globals (* toplevel references *)
 
 let cmd =
+  let testsuite_args, get_testsuite_args = Testsuite.args () in
+  let filter_args, get_filter_args = Filter.args () in
+  let runner_args, exec_args = Runner_common.args () in
   let args =
-    Testsuite.args @
-    Filter.args @
-    Command_promote.args "auto-promote" @
+    runner_args @
+    testsuite_args @
+    filter_args @
+    Command_promote.args ~exec_args "auto-promote" @
     [
 
-      [ "print-all" ], Arg.Set print_all,
-      EZCMD.info "Print also expected failures";
-
-      [ "e" ; "stop-on-failure" ], Arg.Set stop_on_first_failure,
-      EZCMD.info "Stop on first failure";
-
-      [ "j" ], Arg.Int (fun n -> max_jobs := max 1 n),
-      EZCMD.info ~docv:"NJOBS" "Set maximal parallelism";
-
-      [ "1" ; "j1" ], Arg.Unit (fun () -> max_jobs := 1),
-      EZCMD.info "Use Sequential scheduling of tests";
-
-      [ "l" ; "print-seq" ], Arg.Set Runner_common.print_results,
-      EZCMD.info
-        "Print results immediately (default is to print a summary at the end)";
-
-      [ "s" ; "keep-more" ], Arg.Set keep_skipped,
-      EZCMD.info "Keep directories of skipped and expected failed";
-
-      [ "S" ; "keep-all" ], Arg.Set keep_all,
-      EZCMD.info "Keep all directories of tests";
-
-      [ "no-clean" ], Arg.Clear clean_tests_dir,
-      EZCMD.info "Do not clean _autofonce/ dir on startup";
-
-      [ "diff" ], Arg.Unit (fun () ->
-          Globals.auto_promote := 1),
-      EZCMD.info "Print a diff showing what would be promoted";
 
     ]
   in
@@ -57,10 +31,11 @@ let cmd =
     "run"
     (fun () ->
        try
-         let (p, tc, suite) = Testsuite.find () in
-         let n = Testsuite.exec p tc suite in
-         if n>0 && !auto_promote > 0 then
-           Command_promote.action p tc suite
+         let filter_args = get_filter_args () in
+         let (p, tc, suite) = Testsuite.find ( get_testsuite_args () ) in
+         let n = Testsuite.exec ~filter_args ~exec_args p tc suite in
+         if n>0 && exec_args.arg_auto_promote > 0 then
+           Command_promote.action ~filter_args ~exec_args p tc suite
          else
          if n>0 then exit 1
        with

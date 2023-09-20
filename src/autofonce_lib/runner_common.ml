@@ -13,15 +13,70 @@
 open EzCompat (* for IntMap *)
 open Ez_file.V1
 open EzFile.OP
+open Ezcmd.V2
+open EZCMD.TYPES
 
 open Types
-open Globals (* toplevel references *)
 
 module PARSER = Autofonce_core.Parser
 module MISC = Autofonce_misc.Misc
 module CONFIG = Autofonce_config.Project_config
 
-let print_results = ref false
+let args () =
+  let args =
+    {
+      arg_clean_tests_dir = true ;
+      arg_max_jobs = 16 ;
+      arg_auto_promote = 0 ;
+      arg_fake = false ;
+      arg_print_results = false ;
+      arg_subst_env = StringMap.empty ;
+      arg_stop_on_first_failure = false ;
+      arg_print_all = false ;
+      arg_keep_skipped = false ;
+      arg_keep_all = false ;
+      arg_output = None ;
+    }
+  in
+  [
+    [ "print-all" ], Arg.Unit (fun () ->
+        args.arg_print_all <- true),
+    EZCMD.info "Print also expected failures";
+
+    [ "e" ; "stop-on-failure" ], Arg.Unit (fun () ->
+        args.arg_stop_on_first_failure <- true),
+    EZCMD.info "Stop on first failure";
+
+    [ "j" ], Arg.Int (fun n -> args.arg_max_jobs <- max 1 n),
+    EZCMD.info ~docv:"NJOBS" "Set maximal parallelism";
+
+    [ "1" ; "j1" ], Arg.Unit (fun () -> args.arg_max_jobs <- 1),
+    EZCMD.info "Use Sequential scheduling of tests";
+
+    [ "l" ; "print-seq" ], Arg.Unit (fun () -> args.arg_print_results <- true),
+    EZCMD.info
+      "Print results immediately (default is to print a summary at the end)";
+
+    [ "s" ; "keep-more" ], Arg.Unit (fun () -> args.arg_keep_skipped <- true),
+    EZCMD.info "Keep directories of skipped and expected failed";
+
+    [ "S" ; "keep-all" ], Arg.Unit (fun () -> args.arg_keep_all <- true),
+    EZCMD.info "Keep all directories of tests";
+
+    [ "no-clean" ], Arg.Unit (fun () -> args.arg_clean_tests_dir <- false),
+    EZCMD.info "Do not clean _autofonce/ dir on startup";
+
+    [ "diff" ], Arg.Unit (fun () ->
+        args.arg_auto_promote <- 1),
+      EZCMD.info "Print a diff showing what would be promoted";
+
+    [ "o" ; "output" ], Arg.String (fun s -> args.arg_output <- Some s),
+    EZCMD.info
+      ~env:(EZCMD.env "AUTOFONCE_OUTPUT")
+      ~docv:"TESTSUITE" "Path of the output file (default: _autofonce/results.log)";
+
+  ] ,
+  args
 
 let status_len = 30
 let spaces = String.make 80 ' '
@@ -46,7 +101,7 @@ let test_status ter fmt =
     ) fmt
 
 let buffer_test state test_status =
-  if !print_results then begin
+  if state.state_args.arg_print_results then begin
     if Terminal.isatty then begin
       Terminal.move_bol ();
       Terminal.erase Eol;
@@ -73,8 +128,9 @@ let tester_dir ter = test_dir ter.tester_test
 
 let test_is_ok ter =
   let test = ter.tester_test in
-  if not !keep_all then MISC.remove_rec ( tester_dir ter ) ;
   let state = ter.tester_state in
+  if not state.state_args.arg_keep_all then
+    MISC.remove_rec ( tester_dir ter ) ;
   state.state_ntests_ok <- state.state_ntests_ok + 1;
   buffer_test state (
     test_status ter "OK (%s)"
@@ -85,7 +141,8 @@ let test_is_skipped_fail cer s =
   let ter = cer.checker_tester in
   let state = ter.tester_state in
   let check = cer.checker_check in
-  if not !keep_skipped then MISC.remove_rec ( tester_dir ter ) ;
+  if not state.state_args.arg_keep_skipped then
+    MISC.remove_rec ( tester_dir ter ) ;
   state.state_tests_failexpected <- ter :: state.state_tests_failexpected ;
   buffer_test state (
     test_status ter "SKIPPED FAIL (%s %s)"
@@ -97,7 +154,8 @@ let test_is_failed loc ter ?check s =
   ter.tester_fail_reason <- Some ( loc, s, check );
   if ter.tester_fail_expected then begin
     state.state_tests_failexpected <- ter :: state.state_tests_failexpected ;
-    if not !keep_skipped then MISC.remove_rec ( tester_dir ter ) ;
+    if not state.state_args.arg_keep_skipped then
+      MISC.remove_rec ( tester_dir ter ) ;
     buffer_test state
       ( test_status ter "EXPECTED FAIL (%s %s)"
           ( PARSER.name_of_loc loc ) s )
@@ -108,14 +166,14 @@ let test_is_failed loc ter ?check s =
     in
     output state "%s" status;
     buffer_test state status;
-    if !stop_on_first_failure then exit 2;
+    if state.state_args.arg_stop_on_first_failure then exit 2;
   end
 
 let test_is_skip ter =
   let t = ter.tester_test in
   let state = ter.tester_state in
   state.state_tests_skipped <- ter :: state.state_tests_skipped ;
-  if not !keep_skipped then MISC.remove_rec ( tester_dir ter ) ;
+  if not state.state_args.arg_keep_skipped then MISC.remove_rec ( tester_dir ter ) ;
   buffer_test state
     (test_status ter "SKIP (%s)" ( PARSER.name_of_loc t.test_loc ) )
 
@@ -321,9 +379,8 @@ let replace str ~by ~s =
   let re = Re.Posix.compile_pat str in
   Re.replace_string re ~by s
 
-let subst_env = ref StringMap.empty
-let subst_env var =
-  match StringMap.find var !subst_env with
+let subst_env state var =
+  match StringMap.find var state.state_args.arg_subst_env with
   | pair -> pair
   | exception Not_found ->
       let pair =
@@ -333,15 +390,16 @@ let subst_env var =
             let by = Printf.sprintf "${%s}" var in
             Some (str, by)
       in
-      subst_env := StringMap.add var pair !subst_env;
+      state.state_args.arg_subst_env <-
+        StringMap.add var pair state.state_args.arg_subst_env;
       pair
 
 let read_subst_output ter file =
   let s = EzFile.read_file file in
   let t = ter.tester_test in
+  let state = ter.tester_state in
   List.fold_left (fun s var ->
       if var = "AUTOFONCE" then
-        let state = ter.tester_state in
         let p = state.state_project in
         let test_dir = tester_dir ter in
         let s = replace test_dir ~by:"${AUTOFONCE_RUN_DIR}/${TEST_ID}" ~s in
@@ -354,7 +412,7 @@ let read_subst_output ter file =
         let s = replace p.project_source_dir ~by:"${AUTOFONCE_SOURCE_DIR}" ~s in
         s
       else
-        match subst_env var with
+        match subst_env state var with
         | None -> s
         | Some (str, by) -> replace str ~by ~s
     ) s t.test_subst
@@ -423,10 +481,12 @@ let check_failures cer retcode =
   @
   compare check.check_stderr check_stderr "stderr"
 
-let create_state p tc suite =
+let create_state ~exec_args p tc suite =
   let state_run_dir = p.project_run_dir in
   Unix.chdir state_run_dir;
-  { state_suite = suite ;
+  {
+    state_args = exec_args ;
+    state_suite = suite ;
     state_config = tc ;
     state_project = p ;
     state_run_dir ;

@@ -1,9 +1,12 @@
 
 ## 1.0
 
+* Cleanup interface of autofonce_lib:
+  * remove mutable state
+  * add ~force_source_dir and ~force_build_dir to Project_config.from_file
 * Improved compatibility with Autoconf:
   * Discard spaces at end of lines, unless @&t@ is used as last space
-  * add support for [stdout], [stderr], [expout] and [experr] 
+  * add support for [stdout], [stderr], [expout] and [experr]
 * Add file basename to test keywords, so that it is possible to use it
 as a keyword to select all the test of a file
 * Add --diff-args="..." to use instead of "-u" during promotion display

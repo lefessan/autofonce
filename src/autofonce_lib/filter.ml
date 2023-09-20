@@ -12,29 +12,45 @@
 
 open EzCompat
 
-open Types
-open Globals (* toplevel references *)
 open Ez_file.V1
 open EzFile.OP
+open Types
 
 module Misc = Autofonce_misc.Misc
 
-let failures = ref None
-let exec_after = ref 0
-let exec_before = ref max_int
-let tests_ids = ref ( [] : ( int * int ) list )
-let tests_keywords = ref ( [] : string list )
-let tests_nokeywords = ref ( [] : string list )
-let only_failed = ref false
-let all_keywords = ref false
+type args = {
+  mutable arg_filter : bool ;
 
-let select_tests ?state select_test suite =
+  mutable arg_failures : string option ;
+  mutable arg_exec_after : int ;
+  mutable arg_exec_before : int ;
+  mutable arg_tests_ids : ( int * int ) list ;
+  mutable arg_tests_keywords : string list ;
+  mutable arg_tests_nokeywords : string list ;
+  mutable arg_only_failed : bool ;
+  mutable arg_all_keywords : bool ;
+}
+
+let args () =
+  {
+    arg_filter = false ;
+    arg_failures = None ;
+    arg_exec_after = 0 ;
+    arg_exec_before = max_int ;
+    arg_tests_ids = [] ;
+    arg_tests_keywords = [] ;
+    arg_tests_nokeywords = [] ;
+    arg_only_failed = false ;
+    arg_all_keywords = false ;
+  }
+
+let select_tests ~args ?state select_test suite =
   let ntests = suite.suite_ntests in
   let all_tests =
-    !tests_ids = [] && !tests_keywords = []
+    args.arg_tests_ids = [] && args.arg_tests_keywords = []
   in
   let id_set =
-    match !tests_ids with
+    match args.arg_tests_ids with
     | [] -> Array.make (ntests+1) false
     | ids ->
         let t = Array.make (ntests+1) false in
@@ -49,20 +65,21 @@ let select_tests ?state select_test suite =
     let yes_set = ref StringSet.empty in
     let no_set = ref StringSet.empty in
     begin
-      match !tests_keywords with
+      match args.arg_tests_keywords with
       | [] -> ()
       | ids ->
           List.iter (fun s ->
               let s = String.lowercase_ascii s in
               let len = String.length s in
               if len>0 && s.[0] = '-' then
-                no_set := StringSet.add ( String.sub s 1 (len-1) ) !no_set
+                no_set := StringSet.add ( String.sub s 1 (len-1) )
+                    !no_set
               else
                 yes_set := StringSet.add s !yes_set
             ) ids
     end;
     begin
-      match !tests_nokeywords with
+      match args.arg_tests_nokeywords with
       | [] -> ()
       | ids ->
           no_set := StringSet.union !no_set ( StringSet.of_list ids )
@@ -70,12 +87,12 @@ let select_tests ?state select_test suite =
     !yes_set, !no_set
   in
   List.iter (fun t ->
-      if t.test_id >= !exec_after
-      && t.test_id <= !exec_before
+      if t.test_id >= args.arg_exec_after
+      && t.test_id <= args.arg_exec_before
       && (all_tests
           || id_set. (t.test_id)
           ||
-          (if !all_keywords then
+          (if args.arg_all_keywords then
              StringSet.for_all
                (fun k ->  StringSet.mem k t.test_keywords_set) keyword_set
            else
@@ -86,7 +103,7 @@ let select_tests ?state select_test suite =
             t.test_keywords_set
         )
       then
-        if !only_failed then begin
+        if args.arg_only_failed then begin
           (* only_failed option should only be available
                                    with state *)
           match state with
@@ -96,7 +113,7 @@ let select_tests ?state select_test suite =
               let test_dir = Runner_common.test_dir t in
               let test_dir = state.state_run_dir // test_dir in
               if Sys.file_exists test_dir then
-                match !failures with
+                match args.arg_failures with
                 | None ->
                     select_test t
                 | Some failure ->
@@ -148,80 +165,90 @@ let select_tests ?state select_test suite =
 open Ezcmd.V2
 open EZCMD.TYPES
 
-let set_id s =
-  try
-    let range =
-      match EzString.split s '-' with
-      | [id1 ; "" ] -> (int_of_string id1, max_int)
-      | [id1 ; id2 ] -> (int_of_string id1, int_of_string id2)
-      | [id] ->
-          let id = int_of_string id in
-          if id < 0 then (0,-id-1) else (id,id)
-      | _ -> raise Exit
-    in
-    tests_ids := !tests_ids @ [ range ]
-  with _ ->
-    tests_keywords := !tests_keywords @ [s]
 
-let args = [
+let args () =
+  let args = args () in
+  let get_args () = args in
+  let set_id s =
+    try
+      let range =
+        match EzString.split s '-' with
+        | [id1 ; "" ] -> (int_of_string id1, max_int)
+        | [id1 ; id2 ] -> (int_of_string id1, int_of_string id2)
+        | [id] ->
+            let id = int_of_string id in
+            if id < 0 then (0,-id-1) else (id,id)
+        | _ -> raise Exit
+      in
+      args.arg_tests_ids <- args.arg_tests_ids @ [ range ]
+    with _ ->
+      args.arg_tests_keywords <- args.arg_tests_keywords @ [s]
+  in
+  [
 
-  [ "k"; "keywords" ], Arg.String (fun s ->
-      tests_keywords := !tests_keywords @
-                        EzString.split_simplify s ' ';
-      clean_tests_dir := false
-    ),
-  EZCMD.info ~docv:"KEYWORD" "Run only tests matching KEYWORD";
+    [ "k"; "keywords" ], Arg.String (fun s ->
+        args.arg_tests_keywords <- args.arg_tests_keywords @
+                                   EzString.split_simplify s ' ';
+        args.arg_filter <- true
+      ),
+    EZCMD.info ~docv:"KEYWORD" "Run only tests matching KEYWORD";
 
-  [ "i"; "ids" ], Arg.String (fun ids ->
-      List.iter set_id @@ EzString.split_simplify ids ' ' ;
-      clean_tests_dir := false
-    ),
-  EZCMD.info ~docv:"ID" "Run only test ID";
+    [ "i"; "ids" ], Arg.String (fun ids ->
+        List.iter set_id @@ EzString.split_simplify ids ' ' ;
+        args.arg_filter <- true
+      ),
+    EZCMD.info ~docv:"ID" "Run only test ID";
 
-  [ "ge" ; "after" ], Arg.Int (fun x ->
-      exec_after := x;
-      clean_tests_dir := false;
-    ),
-  EZCMD.info ~docv:"ID" "Exec starting at test $(docv)";
+    [ "ge" ; "after" ], Arg.Int (fun x ->
+        args.arg_exec_after <- x;
+        args.arg_filter <- true
+        ;
+      ),
+    EZCMD.info ~docv:"ID" "Exec starting at test $(docv)";
 
-  [ "le" ; "before" ], Arg.Int (fun x ->
-      exec_before := x;
-      clean_tests_dir := false;
-    ),
-  EZCMD.info ~docv:"ID" "Exec ending at test $(docv)";
+    [ "le" ; "before" ], Arg.Int (fun x ->
+        args.arg_exec_before <- x;
+        args.arg_filter <- true
+        ;
+      ),
+    EZCMD.info ~docv:"ID" "Exec ending at test $(docv)";
 
-  [ "N"; "not" ], Arg.String (fun s ->
-      tests_nokeywords := !tests_nokeywords @
-                          EzString.split_simplify s ' ';
-      clean_tests_dir := false
-    ),
-  EZCMD.info ~docv:"KEYWORD" "Skip tests matching KEYWORD";
+    [ "N"; "not" ], Arg.String (fun s ->
+        args.arg_tests_nokeywords <- args.arg_tests_nokeywords @
+                            EzString.split_simplify s ' ';
+        args.arg_filter <- true
 
-  [ "failures" ], Arg.String (fun s ->
-      only_failed := true ;
-      failures := Some s;
-      clean_tests_dir := false
-    ),
-  EZCMD.info ~docv:"REASON" "Run failed tests with given failure";
+      ),
+    EZCMD.info ~docv:"KEYWORD" "Skip tests matching KEYWORD";
 
-  [ "F"; "failed" ], Arg.Unit (fun () ->
-      only_failed := true ;
-      clean_tests_dir := false
-    ),
-  EZCMD.info "Run only previously failed tests (among selected tests)";
+    [ "failures" ], Arg.String (fun s ->
+        args.arg_only_failed <- true ;
+        args.arg_failures <- Some s;
+        args.arg_filter <- true
 
-  [ "A" ; "match-all" ], Arg.Set all_keywords,
-  EZCMD.info "Run tests matching all keywords instead of only one";
+      ),
+    EZCMD.info ~docv:"REASON" "Run failed tests with given failure";
 
-  [], Arg.Anons (fun list ->
-      match list with
-      | [] -> ()
-      | _ ->
-          List.iter (fun s ->
-              set_id s
-            ) list ;
-          clean_tests_dir := false;
-    ),
-  EZCMD.info ~docv:"ID" "Exec ending at test $(docv)";
+    [ "F"; "failed" ], Arg.Unit (fun () ->
+        args.arg_only_failed <- true ;
+        args.arg_filter <- true
 
-]
+      ),
+    EZCMD.info "Run only previously failed tests (among selected tests)";
+
+    [ "A" ; "match-all" ], Arg.Unit (fun () ->
+        args.arg_all_keywords <- true),
+    EZCMD.info "Run tests matching all keywords instead of only one";
+
+    [], Arg.Anons (fun list ->
+        match list with
+        | [] -> ()
+        | _ ->
+            List.iter (fun s ->
+                set_id s
+              ) list ;
+            args.arg_filter <- true  ;
+      ),
+    EZCMD.info ~docv:"ID" "Exec ending at test $(docv)";
+
+  ], get_args
