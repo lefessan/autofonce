@@ -10,8 +10,12 @@
 (*                                                                        *)
 (**************************************************************************)
 
-val from_file : string -> Types.project_config
-val from_string : ?computed:bool -> file:string -> string ->
+val from_file :
+ ?force_build_dir:string -> ?force_source_dir:string ->
+ ?computed:bool -> string -> Types.project_config
+val from_string :
+  ?force_build_dir:string -> ?force_source_dir:string ->
+  ?computed:bool -> file:string -> string ->
   Types.project_config
 
 val to_string : Types.project_config -> string

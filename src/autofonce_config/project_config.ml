@@ -50,7 +50,9 @@ let find_dir_by_anchor ?cwd anchors =
   in
   iter anchors
 
-let parse_table ?(computed=true) ~file table =
+let parse_table
+    ?force_build_dir ?force_source_dir
+    ?(computed=true) ~file table =
   assert (not @@ Filename.is_relative file);
   let project_file = file in
   let file_dir = Filename.dirname file in
@@ -66,40 +68,53 @@ let parse_table ?(computed=true) ~file table =
     EzToml.get_string_list_default table [ "project" ; "build_dir_candidates" ]
       [ "_build" ]
   in
-  let project_source_dir = try
-      find_dir_by_anchor project_source_anchors
-    with
-      Not_found -> file_dir
-    | Exit ->
-        if computed then
-          Misc.error
-            "Could not locate mandatory source dir from project.source_anchors"
-        else
-          file_dir
-  in
-  let project_build_dir =
-    let rec iter ~fail candidates =
-      match candidates with
-      | [] ->
-          if fail then
+  let project_source_dir =
+    match force_source_dir with
+    | Some dir ->
+        if Filename.is_relative dir then
+          Misc.error "Forced source dir must be absolute: %s\n%!" dir;
+        dir
+    | None ->
+        try
+          find_dir_by_anchor project_source_anchors
+        with
+          Not_found -> file_dir
+        | Exit ->
             if computed then
               Misc.error
-                "Could not locate mandatory build dir from project.build_anchors"
+                "Could not locate mandatory source dir from project.source_anchors"
             else
               file_dir
-          else
-            file_dir
-      | cwd :: candidates ->
-          match
-            find_dir_by_anchor ~cwd project_build_anchors
-          with
-          | exception Not_found -> iter ~fail:false candidates
-          | exception Exit -> iter ~fail:true candidates
-          | dir -> dir
-    in
-    iter ~fail:false
-      ( Sys.getcwd () ::
-        (List.map (fun s -> project_source_dir // s) project_build_dir_candidates))
+  in
+  let project_build_dir =
+    match force_build_dir with
+    | Some dir ->
+        if Filename.is_relative dir then
+          Misc.error "Forced build dir must be absolute: %s\n%!" dir;
+        dir
+    | None ->
+        let rec iter ~fail candidates =
+          match candidates with
+          | [] ->
+              if fail then
+                if computed then
+                  Misc.error
+                    "Could not locate mandatory build dir from project.build_anchors"
+                else
+                  file_dir
+              else
+                file_dir
+          | cwd :: candidates ->
+              match
+                find_dir_by_anchor ~cwd project_build_anchors
+              with
+              | exception Not_found -> iter ~fail:false candidates
+              | exception Exit -> iter ~fail:true candidates
+              | dir -> dir
+        in
+        iter ~fail:false
+          ( Sys.getcwd () ::
+            (List.map (fun s -> project_source_dir // s) project_build_dir_candidates))
   in
   let project_envs =
     let table = try
@@ -221,7 +236,9 @@ let parse_table ?(computed=true) ~file table =
     project_run_dir ;
   }
 
-let from_file file =
+let from_file
+    ?force_build_dir ?force_source_dir ?computed
+    file =
   let table =
     match EzToml.from_file file with
     | `Ok table -> table
@@ -230,9 +247,11 @@ let from_file file =
           "Could not parse project config %S: %s at %s" file s
           (EzToml.string_of_location loc)
   in
-  parse_table ~file table
+  parse_table ?force_source_dir ?force_build_dir ?computed ~file table
 
-let from_string ?computed ~file string =
+let from_string
+    ?force_build_dir ?force_source_dir
+    ?computed ~file string =
   let table =
     match EzToml.from_string string with
     | `Ok table -> table
@@ -241,7 +260,9 @@ let from_string ?computed ~file string =
           "Could not parse project config %S: %s at %s" file s
           (EzToml.string_of_location loc)
   in
-  parse_table ?computed ~file table
+  parse_table
+    ?force_build_dir ?force_source_dir
+    ?computed ~file table
 
 let to_string p =
   let b = Buffer.create 10000 in

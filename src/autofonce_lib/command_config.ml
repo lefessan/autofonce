@@ -15,16 +15,16 @@ open Ezcmd.V2
 open Autofonce_config.Types
 
 let cmd =
+  let testsuite_args, get_testsuite_args = Testsuite.args () in
   let args =
-    Testsuite.args @
-    Filter.args @
+    testsuite_args @
     [
     ]
   in
   EZCMD.sub
     "config"
     (fun () ->
-       let (p, _tc, _suite) = Testsuite.find () in
+       let (p, _tc, _suite) = Testsuite.find (get_testsuite_args ()) in
        Printf.printf "Project filename: %S\n" p.project_file ;
        Printf.printf "  Directories: %S\n" p.project_source_dir ;
        Printf.printf "    Source dir: %S\n" p.project_source_dir ;

@@ -10,18 +10,26 @@
 (*                                                                        *)
 (**************************************************************************)
 
-val args :
-  (string list * Ezcmd.V2.EZCMD.TYPES.Arg.spec * Ezcmd.V2.EZCMD.TYPES.info)
-    list
+type args = {
+  mutable arg_testsuite : string option ;
+  mutable arg_testsuite_file : string option ;
+  mutable arg_testsuite_env : string option ;  (* path to env file *)
+  mutable arg_testsuite_path : string list ;
+}
+
+val args : unit ->
+  Ezcmd.V2.EZCMD.TYPES.arg_list * ( unit -> args )
 
 val exec :
+  filter_args:Filter.args ->
+  exec_args:Types.exec_args ->
   Types.project_config ->
   Types.testsuite_config -> Types.suite -> int
 
-val find :
-  unit -> Types.project_config * Types.testsuite_config * Types.suite
+val find : args ->
+  Types.project_config * Types.testsuite_config * Types.suite
 
-val print : Types.suite -> unit
+val print : filter_args:Filter.args -> Types.suite -> unit
 
 val read :
   Types.project_config -> Types.testsuite_config ->

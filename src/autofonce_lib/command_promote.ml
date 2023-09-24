@@ -17,17 +17,17 @@ module Patch_lines = Autofonce_patch.Patch_lines
 module Parser = Autofonce_core.Parser
 module Misc = Autofonce_misc.Misc
 open Types
-open Globals
+open Filter
 
 (* TODO: check why the ignore pattern does not work *)
 let diff args = Patch_lines.Diff { exclude = [ "^# promoted on .*" ]; args }
 let todo = ref (diff None)
 let not_exit = ref false
 
-let promote p tc suite =
-  Filter.only_failed := true ;
+let promote ~filter_args ~exec_args p tc suite =
+  filter_args.arg_only_failed <- true ;
   Patch_lines.reset ();
-  let state = Runner_common.create_state p tc suite in
+  let state = Runner_common.create_state ~exec_args p tc suite in
   Unix.chdir state.state_run_dir ;
   (*
   let comment_line =
@@ -72,12 +72,12 @@ let promote p tc suite =
     let content = Buffer.contents b in
     Patch_lines.replace_block ~file ~line_first ~line_last content
   in
-  Filter.select_tests ~state promote_test suite;
+  Filter.select_tests ~args:filter_args ~state promote_test suite;
 
   Patch_lines.commit_to_disk ~action:!todo ();
   ()
 
-let args auto_promote_arg = [
+let args auto_promote_arg ~exec_args = [
 
   [ "not-exit" ], Arg.Set not_exit,
   EZCMD.info "Do not promote exit code" ;
@@ -86,7 +86,7 @@ let args auto_promote_arg = [
   EZCMD.info ~docv:"ARGS" "Pass these args to the diff command" ;
 
   [ auto_promote_arg ], Arg.Int (fun n ->
-      auto_promote := n ;
+      exec_args.arg_auto_promote <- n ;
       todo := Apply ;
     ),
   EZCMD.info
@@ -94,23 +94,27 @@ let args auto_promote_arg = [
 
 ]
 
-let rec action p tc suite =
-  promote p tc suite ;
-  if !auto_promote > 0 then begin
-    Filter.only_failed := true ;
-    clean_tests_dir := false ;
-    let n = Testsuite.exec p tc suite in
-    decr auto_promote;
+let rec action ~filter_args ~exec_args p tc suite =
+  promote ~filter_args ~exec_args p tc suite ;
+  if exec_args.arg_auto_promote > 0 then begin
+    filter_args.arg_only_failed <- true ;
+    filter_args.arg_filter <- true ;
+    let n = Testsuite.exec ~filter_args ~exec_args p tc suite in
+    exec_args.arg_auto_promote <- exec_args.arg_auto_promote - 1;
     if n>0 then
       let (p, tc, suite) = Testsuite.read p tc in
-      action p tc suite
+      action ~filter_args ~exec_args p tc suite
   end
 
 let cmd =
+  let testsuite_args, get_testsuite_args = Testsuite.args () in
+  let filter_args, get_filter_args = Filter.args () in
+  let runner_args, exec_args = Runner_common.args () in
   let args =
-    Testsuite.args @
-    Filter.args @
-    args "auto-run" @
+    runner_args @
+    testsuite_args @
+    filter_args @
+    args ~exec_args "auto-run" @
     [
 
       [ "apply" ], Arg.Unit (fun () -> todo := Apply),
@@ -128,8 +132,9 @@ let cmd =
   EZCMD.sub
     "promote"
     (fun () ->
-       let p, tc, suite = Testsuite.find () in
-       action p tc suite
+       let filter_args = get_filter_args () in
+       let p, tc, suite = Testsuite.find ( get_testsuite_args () ) in
+       action ~filter_args ~exec_args p tc suite
     )
     ~args
     ~doc: "Promote tests results as expected results"

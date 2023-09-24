@@ -13,17 +13,20 @@
 open Ezcmd.V2
 
 let cmd =
+  let testsuite_args, get_testsuite_args = Testsuite.args () in
+  let filter_args, get_filter_args = Filter.args () in
   let args =
-    Testsuite.args @
-    Filter.args @
+    testsuite_args @
+    filter_args @
     [
     ]
   in
   EZCMD.sub
     "list"
     (fun () ->
-       let (_p, _tc, suite) = Testsuite.find () in
-       Testsuite.print suite
+       let filter_args = get_filter_args () in
+       let (_p, _tc, suite) = Testsuite.find ( get_testsuite_args ())  in
+       Testsuite.print ~filter_args suite
     )
     ~args
     ~doc: "Print testsuite of the current project"
