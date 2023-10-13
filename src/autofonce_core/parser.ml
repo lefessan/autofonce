@@ -537,31 +537,62 @@ let read ?(path=[]) filename =
   c
 
 let m4_escape s =
-  let b = Buffer.create (String.length s) in
+  let len = String.length s in
+  let b = Buffer.create len in
+
+  (* Find for each position if a matching closing par is available *)
+  let pars = Array.make len 0 in
+  let rec iter n pars s pos len =
+    if pos > 0 then
+      let pos = pos - 1 in
+      let c = s.[pos] in
+      pars.(pos) <- n;
+      let n =
+        match c with
+      | '(' -> if n > 0 then n-1 else 0
+      | ')' -> n+1
+      | _ -> n
+      in
+      iter n pars s pos len
+  in
+  iter 0 pars s len len;
+
   Buffer.add_char b '[';
-  let rec iter was_space b s pos len =
+  let rec iter pos was_space npars =
     if pos < len then
       let c = s.[pos] in
       let pos = pos+1 in
       match c with
       | '[' ->
           Buffer.add_string b "@<:@";
-          iter false b s pos len
+          iter pos false npars
       | ']' ->
           Buffer.add_string b "@:>@";
-          iter false b s pos len
+          iter pos false npars
+      | '(' ->
+          Buffer.add_string b (
+            if pars.(pos-1) = 0 then
+              "@{:@"
+            else
+              "("
+          );
+          iter pos false (npars+1)
+      | ')' ->
+          Buffer.add_string b (if npars>0 then ")" else "@:}@");
+          let npars = if npars>0 then npars-1 else 0 in
+          iter pos false npars
       | ' ' | '\t' | '\012' ->
           Buffer.add_char b c;
-          iter true b s pos len;
+          iter pos true npars;
       | '\n' ->
           if was_space then
             Buffer.add_string b "@&t@";
           Buffer.add_char b c;
-          iter false b s pos len;
+          iter pos false npars;
       | c ->
           Buffer.add_char b c;
-          iter false b s pos len;
+          iter pos false npars;
   in
-  iter false b s 0 ( String.length s );
+  iter 0 false 0 ;
   Buffer.add_char b ']';
   Buffer.contents b

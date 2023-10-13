@@ -66,7 +66,7 @@ let print_actions ~not_exit ~keep_old b actions =
               Printf.bprintf b ", [%d]" retcode
             else
               match check.check_stdout, check.check_stderr with
-              | Content "", Content "" -> ()
+              | Ignore, Ignore -> ()
               | _ ->
                   Printf.bprintf b ", [%d]" retcode;
       end;
@@ -92,7 +92,7 @@ let print_actions ~not_exit ~keep_old b actions =
         | Content content ->
             if content = "" then
               match check.check_stderr with
-              | Content "" -> ()
+              | Ignore -> ()
               | _ ->
                   Printf.bprintf b ", []"
             else
@@ -138,7 +138,6 @@ let print_actions ~not_exit ~keep_old b actions =
         | Diff_with_file file ->
             assert (file = "expout" || file = "experr");
             Printf.bprintf b ", [%s]" file
-        | Content "" -> ()
         | Content content ->
             let s = Parser.m4_escape content in
             if Buffer.length b + String.length s > 80 then

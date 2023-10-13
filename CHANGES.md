@@ -6,6 +6,7 @@
   * add ~force_source_dir and ~force_build_dir to Project_config.from_file
 * Improved compatibility with Autoconf:
   * Discard spaces at end of lines, unless @&t@ is used as last space
+  * Escape parens, do not escape them if they match each other
   * add support for [stdout], [stderr], [expout] and [experr]
 * Add file basename to test keywords, so that it is possible to use it
 as a keyword to select all the test of a file
