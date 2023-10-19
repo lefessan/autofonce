@@ -536,63 +536,79 @@ let read ?(path=[]) filename =
   c.suite_tests <- List.rev c.suite_tests ;
   c
 
-let m4_escape s =
+let m4_escape ?(can_quote=true) s =
   let len = String.length s in
-  let b = Buffer.create len in
 
   (* Find for each position if a matching closing par is available *)
   let pars = Array.make len 0 in
-  let rec iter n pars s pos len =
+  let rec iter ~npars ~nbras ~has_quote ~has_impaired ~pos =
     if pos > 0 then
       let pos = pos - 1 in
       let c = s.[pos] in
-      pars.(pos) <- n;
-      let n =
-        match c with
-      | '(' -> if n > 0 then n-1 else 0
-      | ')' -> n+1
-      | _ -> n
-      in
-      iter n pars s pos len
-  in
-  iter 0 pars s len len;
 
-  Buffer.add_char b '[';
-  let rec iter pos was_space npars =
-    if pos < len then
-      let c = s.[pos] in
-      let pos = pos+1 in
-      match c with
-      | '[' ->
-          Buffer.add_string b "@<:@";
-          iter pos false npars
-      | ']' ->
-          Buffer.add_string b "@:>@";
-          iter pos false npars
-      | '(' ->
-          Buffer.add_string b (
-            if pars.(pos-1) = 0 then
-              "@{:@"
-            else
-              "("
-          );
-          iter pos false (npars+1)
-      | ')' ->
-          Buffer.add_string b (if npars>0 then ")" else "@:}@");
-          let npars = if npars>0 then npars-1 else 0 in
-          iter pos false npars
-      | ' ' | '\t' | '\012' ->
-          Buffer.add_char b c;
-          iter pos true npars;
-      | '\n' ->
-          if was_space then
-            Buffer.add_string b "@&t@";
-          Buffer.add_char b c;
-          iter pos false npars;
-      | c ->
-          Buffer.add_char b c;
-          iter pos false npars;
+      pars.(pos) <- npars;
+      let npars =
+        match c with
+        | '(' -> if npars > 0 then npars-1 else 0
+        | ')' -> npars+1
+        | _ -> npars
+      in
+
+      let nbras = match c with
+        | '[' -> nbras-1
+        | ']' -> nbras+1
+        | _ -> nbras
+      in
+      let has_quote = has_quote || nbras > 0 in
+      let has_impaired = has_impaired || nbras < 0 in
+      iter ~npars ~nbras ~has_quote ~has_impaired ~pos
+    else
+      let has_impaired = has_impaired || nbras > 0 in
+      has_quote && not has_impaired
   in
-  iter 0 false 0 ;
-  Buffer.add_char b ']';
-  Buffer.contents b
+  let should_quote = iter ~npars:0 ~nbras:0
+      ~has_quote:false
+      ~has_impaired:false ~pos:len in
+  if can_quote && should_quote then
+    Printf.sprintf "[[%s]]" s
+  else
+    let b = Buffer.create len in
+    Buffer.add_char b '[';
+    let rec iter pos was_space npars =
+      if pos < len then
+        let c = s.[pos] in
+        let pos = pos+1 in
+        match c with
+        | '[' ->
+            Buffer.add_string b "@<:@";
+            iter pos false npars
+        | ']' ->
+            Buffer.add_string b "@:>@";
+            iter pos false npars
+        | '(' ->
+            Buffer.add_string b (
+              if pars.(pos-1) = 0 then
+                "@{:@"
+              else
+                "("
+            );
+            iter pos false (npars+1)
+        | ')' ->
+            Buffer.add_string b (if npars>0 then ")" else "@:}@");
+            let npars = if npars>0 then npars-1 else 0 in
+            iter pos false npars
+        | ' ' | '\t' | '\012' ->
+            Buffer.add_char b c;
+            iter pos true npars;
+        | '\n' ->
+            if was_space then
+              Buffer.add_string b "@&t@";
+            Buffer.add_char b c;
+            iter pos false npars;
+        | c ->
+            Buffer.add_char b c;
+            iter pos false npars;
+    in
+    iter 0 false 0 ;
+    Buffer.add_char b ']';
+    Buffer.contents b

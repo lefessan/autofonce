@@ -11,7 +11,8 @@
 (**************************************************************************)
 
 val name_of_loc : Types.location -> string
-val m4_escape : string -> string
+
+val m4_escape : ?can_quote:bool -> string -> string
 
 (* Read filename to get the corresponding testsuite *)
 val read : ?path:string list -> string -> Types.suite

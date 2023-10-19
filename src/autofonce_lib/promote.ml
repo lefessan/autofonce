@@ -39,25 +39,70 @@ let print_actions ~not_exit ~keep_old b actions =
        run-if-pass or run-if-fail is not empty. Otherwise,
        the check must pass after promotion.
     *)
+
     if
       check.check_run_if_pass = [] && check.check_run_if_fail = []
     then begin
+      (* We can promote these results *)
 
-      begin
-        let retcode =
-          if not_exit || keep_old then check.check_retcode
-          else
-            match check.check_retcode with
-            | None -> None
-            | Some old_retcode ->
-                let check_exit = Printf.sprintf "%s.exit" check_prefix in
-                if Sys.file_exists check_exit then
-                  let s = EzFile.read_file check_exit in
-                  let retcode = int_of_string s in
-                  Some retcode
-                else
-                  Some old_retcode
-        in
+      let retcode =
+        if not_exit || keep_old then check.check_retcode
+        else
+          match check.check_retcode with
+          | None -> None
+          | Some old_retcode ->
+              let check_exit = Printf.sprintf "%s.exit" check_prefix in
+              if Sys.file_exists check_exit then
+                let s = EzFile.read_file check_exit in
+                let retcode = int_of_string s in
+                Some retcode
+              else
+                Some old_retcode
+      in
+
+      let stdout =
+        if keep_old then check.check_stdout else
+          match check.check_stdout with
+          | Ignore -> Ignore
+          | Content old_content ->
+              let check_stdout =
+                Printf.sprintf "%s.out.subst" check_prefix in
+              if Sys.file_exists check_stdout then
+                let s = EzFile.read_file check_stdout in
+                Content s
+              else
+                Content old_content
+          | Save_to_file _
+          | Diff_with_file _
+            -> check.check_stdout
+      in
+
+      let stderr =
+        if keep_old then check.check_stderr else
+          match check.check_stderr with
+          | Ignore -> Ignore
+          | Content old_content ->
+              let check_stderr =
+                Printf.sprintf "%s.err.subst" check_prefix in
+              if Sys.file_exists check_stderr then
+                let s = EzFile.read_file check_stderr in
+                Content s
+              else
+                Content old_content
+          | Save_to_file _
+          | Diff_with_file _
+            -> check.check_stdout
+      in
+
+      let nargs =
+        match retcode, stdout, stderr with
+        | Some 0, Content "", Content "" -> 0
+        | _, Content "", Content "" -> 1
+        | _, _, Content "" -> 2
+        | _ -> 3
+      in
+
+      if nargs > 0 then begin
         match retcode with
         | None ->
             Printf.bprintf b ", [ignore]"
@@ -71,23 +116,7 @@ let print_actions ~not_exit ~keep_old b actions =
                   Printf.bprintf b ", [%d]" retcode;
       end;
 
-      begin
-        let stdout =
-          if keep_old then check.check_stdout else
-            match check.check_stdout with
-            | Ignore -> Ignore
-            | Content old_content ->
-                let check_stdout =
-                  Printf.sprintf "%s.out.subst" check_prefix in
-                if Sys.file_exists check_stdout then
-                  let s = EzFile.read_file check_stdout in
-                  Content s
-                else
-                  Content old_content
-            | Save_to_file _
-            | Diff_with_file _
-              -> check.check_stdout
-        in
+      if nargs > 1 then begin
         match stdout with
         | Content content ->
             if content = "" then
@@ -109,26 +138,9 @@ let print_actions ~not_exit ~keep_old b actions =
             Printf.bprintf b ", [%s]" file
         | Ignore ->
             Printf.bprintf b ", [ignore]"
-
       end;
 
-      begin
-        let stderr =
-          if keep_old then check.check_stderr else
-            match check.check_stderr with
-            | Ignore -> Ignore
-            | Content old_content ->
-                let check_stderr =
-                  Printf.sprintf "%s.err.subst" check_prefix in
-                if Sys.file_exists check_stderr then
-                  let s = EzFile.read_file check_stderr in
-                  Content s
-                else
-                  Content old_content
-            | Save_to_file _
-            | Diff_with_file _
-              -> check.check_stdout
-        in
+      if nargs > 2 then begin
         match stderr with
         | Ignore ->
             Printf.bprintf b ", [ignore]"
@@ -138,6 +150,7 @@ let print_actions ~not_exit ~keep_old b actions =
         | Diff_with_file file ->
             assert (file = "expout" || file = "experr");
             Printf.bprintf b ", [%s]" file
+        | Content "" -> ()
         | Content content ->
             let s = Parser.m4_escape content in
             if Buffer.length b + String.length s > 80 then
@@ -233,7 +246,7 @@ let print_actions ~not_exit ~keep_old b actions =
     | AT_CHECK check ->
         Printf.bprintf b "\n%s\n" ( string_of_check check )
     | AF_COMMENT comment ->
-        Printf.bprintf b "#%s\n\n" comment
+        Printf.bprintf b "\n#%s\n" comment
 
   and print_actions b actions =
     List.iter ( print_action b ) actions
