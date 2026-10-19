@@ -127,11 +127,17 @@ let find args =
                     p.project_file
           | tcs ->
               List.filter (fun tc ->
+                  let bool =
                   let testsuite_file = p.project_source_dir // tc.config_file in
-                  if tc.config_level > args.arg_testsuite_level then
+                  if tc.config_level >= args.arg_testsuite_level then
                     false
                   else
-                  if match args.arg_testsuite_keywords with
+                  if
+                    match
+                      match args.arg_testsuite_keywords with
+                      | [] -> p.project_default
+                      | kws -> kws
+                    with
                     | [] -> false
                     | kws ->
                         List.exists (fun kw ->
@@ -143,6 +149,11 @@ let find args =
                     Printf.eprintf "Discarding inexistent testsuite %S\n"
                       tc.config_name;
                   keep
+                  in
+                  Printf.eprintf "name: %s --> %b\n%!" tc.config_name bool;
+                  Printf.eprintf "level: %d\n%!" tc.config_level;
+                  Printf.eprintf "level: %d\n%!" args.arg_testsuite_level;
+                  bool
                 ) tcs
         end
     | Some testsuite ->

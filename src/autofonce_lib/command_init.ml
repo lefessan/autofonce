@@ -82,6 +82,7 @@ let default_project_config project_file =
     project_run_from = Build_dir ;
     project_captured_files = [];
     project_checker = None;
+    project_default = [];
 
     project_file = project_file ;
     project_source_dir = Filename.dirname project_file ;

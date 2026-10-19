@@ -228,6 +228,9 @@ let parse_table
   let project_checker = try
       Some ( EzToml.get_string table [ "project" ; "checker" ] )
     with _ -> None in
+  let project_default = try
+      [ EzToml.get_string table [ "project" ; "default" ] ]
+    with _ -> [] in
   let project_run_from = match project_run_from with
     | "build" -> Build_dir
     | "source" -> Source_dir
@@ -252,6 +255,7 @@ let parse_table
     project_envs ;
     project_captured_files ;
     project_checker ;
+    project_default ;
 
     (* computed *)
     project_file ;

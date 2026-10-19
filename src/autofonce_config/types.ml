@@ -46,6 +46,7 @@ type project_config = {
   (* list of files to include in results.log *)
   project_captured_files : string list ;
   project_checker : string option ;
+  project_default : string list ;
 
   (* computed *)
   project_file : string ;
