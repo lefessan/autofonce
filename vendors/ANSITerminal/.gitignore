@@ -1,5 +1,0 @@
-# OCaml                                                 -*-conf-unix-*-
-*.merlin
-*.install
-*.tar.gz
-_build
